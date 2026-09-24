@@ -102,7 +102,7 @@ export function CalageDoublons({ fusions: initial }: { fusions: FusionProposee[]
                 <Cote o={source} role="Source (désactivée)" />
                 <span aria-hidden className="text-[20px] text-faint">→</span>
                 <Cote o={cible} role="Cible (conserve l'historique)" />
-                <div className="flex w-full flex-wrap items-center gap-2 border-t border-hairline pt-3 md:w-auto md:border-0 md:pt-0">
+                <div className="flex w-full flex-wrap items-center gap-2 border-t border-hairline pt-3 xl:w-auto xl:border-0 xl:pt-0">
                   <span className="mono text-[12.5px] text-sub" title="Similarité des libellés">
                     {f.score == null ? "—" : nombre(f.score, 2)}
                   </span>
