@@ -161,13 +161,16 @@ function resumeStats(s: StatsPrix | null, indexe: boolean) {
     p75: v.quartiles?.p75 ?? null,
     cv: s.coefVariation,
     fiabilite: s.fiabilite,
-    periode: `${s.premiereOccurrence} → ${s.derniereOccurrence}`,
+    periode: s.premiereOccurrence && s.derniereOccurrence
+      ? `${s.premiereOccurrence} → ${s.derniereOccurrence}`
+      : "pièces non datées",
     zone_toujours_fiable: s.zoneToujoursFiable,
     prix: indexe ? "actualisés à aujourd'hui" : "bruts (non actualisés)",
   };
 }
 
 function periodeDe(s: StatsPrix): string {
+  if (!s.premiereOccurrence || !s.derniereOccurrence) return "non daté";
   const annee = (d: string) => d.slice(0, 4);
   const a1 = annee(s.premiereOccurrence);
   const a2 = annee(s.derniereOccurrence);

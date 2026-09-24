@@ -7,6 +7,7 @@
 // Pas de feux tricolores : la réglette suggère, le n= affirme.
 // =====================================================================
 
+import { IconeInfo, Infobulle, LigneInfo } from "./Infobulle";
 import {
   valeurs,
   euro,
@@ -267,33 +268,99 @@ export function EtiquetteN({ n }: { n: number }) {
   );
 }
 
-/** Cellule prix complète : médiane + réglette + n. `stats === null`
- *  rend un tiret cadratin, pas une réglette vide. */
+/**
+ * Cellule « Prix de référence » du tableau : médiane des travaux normaux
+ * (repli sur TS si aucun normal), réglette, ⓘ avec bas/haut/moyenne/
+ * min/max, badge TS quand des lignes TS existent.
+ */
 export function CellulePrix({
-  stats,
+  normaux,
+  ts,
+  deltaTs,
   indexe,
-  ts = false,
 }: {
-  stats: StatsPrix | null;
+  normaux: StatsPrix | null;
+  ts: StatsPrix | null;
+  deltaTs: number | null;
   indexe: boolean;
-  ts?: boolean;
 }) {
-  if (!stats) {
+  const ref = normaux ?? ts;
+  if (!ref) {
     return <span className="text-faint">—</span>;
   }
-  const v = valeurs(stats, indexe);
+  const estTsSeul = normaux === null;
+  const v = valeurs(ref, indexe);
+  const vt = ts ? valeurs(ts, indexe) : null;
   return (
     <div className="flex items-center gap-2">
       <span
         className="mono w-[80px] shrink-0 text-right text-[13.5px] font-medium"
-        style={{ color: ts ? "var(--ts)" : "var(--navy)" }}
+        style={{ color: estTsSeul ? "var(--ts)" : "var(--navy)" }}
       >
         {euro(v.mediane)}
       </span>
       <span className="hidden sm:block">
-        <ReglettePrix stats={stats} indexe={indexe} ts={ts} />
+        <ReglettePrix stats={ref} indexe={indexe} ts={estTsSeul} />
       </span>
-      <EtiquetteN n={stats.n} />
+      <Infobulle
+        contenu={
+          <>
+            {v.quartiles ? (
+              <>
+                <LigneInfo libelle="Prix bas" valeur={euro(v.quartiles.p25)} accent />
+                <LigneInfo libelle="Prix haut" valeur={euro(v.quartiles.p75)} accent />
+                <span className="mb-1 text-[11.5px] text-faint">
+                  La moitié des devis se situe entre ces deux prix.
+                </span>
+              </>
+            ) : (
+              <span className="mb-1 text-[11.5px] text-faint">
+                Moins de 4 lignes : pas encore de fourchette.
+              </span>
+            )}
+            <LigneInfo libelle="Moyenne" valeur={euro(v.moyenne)} />
+            <LigneInfo libelle="Minimum" valeur={euro(v.min)} />
+            <LigneInfo libelle="Maximum" valeur={euro(v.max)} />
+            <LigneInfo
+              libelle="Chantiers"
+              valeur={
+                ref.premiereOccurrence && ref.derniereOccurrence
+                  ? `${ref.nChantiers} · ${ref.premiereOccurrence.slice(0, 4)}–${ref.derniereOccurrence.slice(0, 4)}`
+                  : String(ref.nChantiers)
+              }
+            />
+            {estTsSeul && (
+              <span className="mt-1 text-[11.5px]" style={{ color: "var(--ts)" }}>
+                Uniquement des travaux supplémentaires.
+              </span>
+            )}
+          </>
+        }
+      >
+        <IconeInfo />
+      </Infobulle>
+      {ts && vt && !estTsSeul && (
+        <Infobulle
+          largeur={250}
+          contenu={
+            <>
+              <LigneInfo libelle="Travaux supplémentaires" valeur={euro(vt.mediane)} accent />
+              <LigneInfo libelle="Lignes TS" valeur={`n=${ts.n}`} />
+              {deltaTs !== null && (
+                <LigneInfo
+                  libelle="Par rapport aux normaux"
+                  valeur={`${deltaTs > 0 ? "+" : ""}${Math.round(deltaTs)} %`}
+                />
+              )}
+              <span className="mt-1 text-[11.5px] text-faint">
+                Chiffré à chaud, en petite quantité : plus cher, compté à part.
+              </span>
+            </>
+          }
+        >
+          <span className="badge b-amber !px-1.5 !py-0 !text-[10.5px]">TS</span>
+        </Infobulle>
+      )}
     </div>
   );
 }

@@ -4,6 +4,8 @@
 // Table des prix — TanStack Table v8, tri et pagination pilotés par
 // l'URL (le serveur fait tout le travail). Sous 768px : cartes
 // empilées, jamais de scroll horizontal.
+// Colonnes : Lot · Ouvrage · U. · Prix de référence (réglette, ⓘ, TS)
+// · n · Dernier devis.
 // =====================================================================
 
 import {
@@ -22,21 +24,12 @@ import {
   valeurs,
   LIBELLES_UNITES,
   type ColonneTriPrix,
-  type LotNoeud,
   type OuvrageResume,
   type Page,
   type Tri,
 } from "@/lib/types";
 
 const aide = createColumnHelper<OuvrageResume>();
-
-function dispersionPct(r: OuvrageResume, indexe: boolean): number | null {
-  const s = r.normaux ?? r.ts;
-  if (!s) return null;
-  const q = indexe ? s.quartilesIndexes : s.quartiles;
-  if (!q || q.p25 <= 0) return null;
-  return Math.round((q.p75 / q.p25 - 1) * 100);
-}
 
 function derniereOcc(r: OuvrageResume): string | null {
   const dates = [r.normaux?.derniereOccurrence, r.ts?.derniereOccurrence]
@@ -45,25 +38,26 @@ function derniereOcc(r: OuvrageResume): string | null {
   return dates.at(-1) ?? null;
 }
 
+function nTotal(r: OuvrageResume): number {
+  return (r.normaux?.n ?? 0) + (r.ts?.n ?? 0);
+}
+
 export function TableauPrix({
   page,
   indexe,
   tri,
-  lots,
   baseVide,
   estAdmin = false,
 }: {
   page: Page<OuvrageResume>;
   indexe: boolean;
   tri: Tri<ColonneTriPrix>;
-  lots: LotNoeud[];
   baseVide: boolean;
   estAdmin?: boolean;
 }) {
   const { modifier } = useParamsUrl();
   const params = useSearchParams();
   const ouvrageOuvert = params.get("ouvrage");
-  const sansPrix = params.get("sansprix") === "1";
 
   const colonnes = [
     aide.accessor((r) => r.ouvrage.lotCode, {
@@ -94,35 +88,32 @@ export function TableauPrix({
         );
       },
     }),
-    aide.accessor((r) => r.normaux, {
-      id: "prix_normaux",
-      header: "Prix normaux",
-      cell: (c) => <CellulePrix stats={c.getValue()} indexe={indexe} />,
-    }),
-    aide.accessor((r) => r.ts, {
-      id: "prix_ts",
-      header: "Prix TS",
-      cell: (c) => <CellulePrix stats={c.getValue()} indexe={indexe} ts />,
-    }),
-    aide.accessor((r) => dispersionPct(r, indexe), {
-      id: "dispersion",
-      header: "Écart",
+    aide.accessor((r) => r, {
+      id: "prix",
+      header: "Prix de référence",
       cell: (c) => {
-        const v = c.getValue();
-        if (v === null) return <span className="text-faint">—</span>;
+        const r = c.getValue();
         return (
-          <span
-            className={`mono text-[13px] ${v > 40 ? "font-medium" : ""}`}
-            style={{ color: v > 40 ? "var(--warning)" : "var(--ink-muted)" }}
-          >
-            {v} %
-          </span>
+          <CellulePrix
+            normaux={r.normaux}
+            ts={r.ts}
+            deltaTs={r.deltaTs}
+            indexe={indexe}
+          />
         );
+      },
+    }),
+    aide.accessor((r) => nTotal(r), {
+      id: "n",
+      header: "n",
+      cell: (c) => {
+        const n = c.getValue();
+        return n > 0 ? <EtiquetteN n={n} /> : <span className="text-faint">—</span>;
       },
     }),
     aide.accessor((r) => derniereOcc(r), {
       id: "derniere_occurrence",
-      header: "Dernière occ.",
+      header: "Dernier devis",
       cell: (c) => (
         <span className="mono text-[13px] text-sub">{fmtDate(c.getValue())}</span>
       ),
@@ -146,11 +137,6 @@ export function TableauPrix({
   };
 
   const ouvrir = (id: string) => modifier({ ouvrage: id }, true);
-
-  const masqueLarge = (id: string) =>
-    id === "dispersion" || id === "derniere_occurrence"
-      ? "hidden min-[1440px]:table-cell"
-      : "";
 
   // ---------- états vides ----------
   if (page.total === 0) {
@@ -191,28 +177,6 @@ export function TableauPrix({
 
   return (
     <div className="flex-1">
-      {/* ---------- sélecteur de lot mobile ---------- */}
-      <div className="pb-3 lg:hidden">
-        <select
-          aria-label="Filtrer par lot"
-          value={params.get("lot") ?? ""}
-          onChange={(e) => modifier({ lot: e.target.value || null })}
-          className="vx-select w-full"
-        >
-          <option value="">Tous les lots</option>
-          {lots.flatMap((l) => [
-            <option key={l.id} value={l.id}>
-              {l.libelle} ({sansPrix ? l.nbOuvragesCumule : l.nbAvecPrixCumule})
-            </option>,
-            ...l.enfants.map((e) => (
-              <option key={e.id} value={e.id}>
-                — {e.libelle} ({sansPrix ? e.nbOuvragesCumule : e.nbAvecPrixCumule})
-              </option>
-            )),
-          ])}
-        </select>
-      </div>
-
       {/* ---------- table (>= 768px) ---------- */}
       <div className="hidden md:block">
         <table className="vx-tbl">
@@ -227,7 +191,7 @@ export function TableauPrix({
                         ? tri.sens === "asc" ? "ascending" : "descending"
                         : undefined
                     }
-                    className={masqueLarge(h.column.id)}
+                    className={h.column.id === "n" ? "vx-r" : ""}
                   >
                     <button
                       type="button"
@@ -269,7 +233,7 @@ export function TableauPrix({
                   {rangee.getVisibleCells().map((cellule) => (
                     <td
                       key={cellule.id}
-                      className={masqueLarge(cellule.column.id)}
+                      className={cellule.column.id === "n" ? "vx-r" : ""}
                     >
                       {flexRender(cellule.column.columnDef.cell, cellule.getContext())}
                     </td>
@@ -284,8 +248,9 @@ export function TableauPrix({
       {/* ---------- cartes empilées (< 768px) ---------- */}
       <div className="space-y-2 md:hidden">
         {page.lignes.map((r) => {
-          const vn = r.normaux ? valeurs(r.normaux, indexe) : null;
-          const vt = r.ts ? valeurs(r.ts, indexe) : null;
+          const ref = r.normaux ?? r.ts;
+          const v = ref ? valeurs(ref, indexe) : null;
+          const vt = r.ts && r.normaux ? valeurs(r.ts, indexe) : null;
           return (
             <button
               key={r.ouvrage.id}
@@ -300,31 +265,31 @@ export function TableauPrix({
               <div className="mt-0.5 text-[14px] leading-snug">
                 {r.ouvrage.libelleDevis}
               </div>
-              {vn && r.normaux && (
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="w-[64px] text-[12px] text-faint">Normaux</span>
-                  <span className="vx-cell-key !text-left">{euro(vn.mediane)}</span>
-                  <ReglettePrix stats={r.normaux} indexe={indexe} />
-                  <EtiquetteN n={r.normaux.n} />
-                </div>
-              )}
-              {vt && r.ts && (
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="w-[64px] text-[12px] text-faint">TS</span>
-                  <span className="mono text-[13px]" style={{ color: "var(--ts)" }}>
-                    {euro(vt.mediane)}
-                  </span>
-                  <ReglettePrix stats={r.ts} indexe={indexe} ts />
-                  <EtiquetteN n={r.ts.n} />
-                  {r.deltaTs !== null && (
-                    <span className="mono text-[11px]" style={{ color: "var(--ts)" }}>
-                      {r.deltaTs > 0 ? "+" : ""}
-                      {Math.round(r.deltaTs)} %
-                    </span>
+              {v && ref ? (
+                <>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="vx-cell-key !text-left">{euro(v.mediane)}</span>
+                    <ReglettePrix stats={ref} indexe={indexe} ts={r.normaux === null} />
+                    <EtiquetteN n={ref.n} />
+                  </div>
+                  {v.quartiles && (
+                    <div className="mt-1 text-[12px] text-sub">
+                      Fourchette {euro(v.quartiles.p25)} – {euro(v.quartiles.p75)}
+                    </div>
                   )}
-                </div>
+                  {vt && r.ts && (
+                    <div className="mt-1 text-[12px]" style={{ color: "var(--ts)" }}>
+                      TS {euro(vt.mediane)} (n={r.ts.n}
+                      {r.deltaTs !== null
+                        ? `, ${r.deltaTs > 0 ? "+" : ""}${Math.round(r.deltaTs)} %`
+                        : ""}
+                      )
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="mt-2 text-[12.5px] text-faint">Aucune occurrence</div>
               )}
-              {!vn && !vt && <div className="mt-2 text-[12.5px] text-faint">Aucune occurrence</div>}
             </button>
           );
         })}

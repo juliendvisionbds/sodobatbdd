@@ -186,9 +186,14 @@ export function FicheContenu(d: DonneesFiche) {
                     {actif && (
                       <div className="mono mt-2 text-[12px] text-faint">
                         n={actif.n} · {actif.nChantiers} chantier
-                        {actif.nChantiers > 1 ? "s" : ""} ·{" "}
-                        {actif.premiereOccurrence.slice(0, 4)}–
-                        {actif.derniereOccurrence.slice(0, 4)}
+                        {actif.nChantiers > 1 ? "s" : ""}
+                        {actif.premiereOccurrence && actif.derniereOccurrence && (
+                          <>
+                            {" · "}
+                            {actif.premiereOccurrence.slice(0, 4)}–
+                            {actif.derniereOccurrence.slice(0, 4)}
+                          </>
+                        )}
                         {dispersion !== null && <> · dispersion ±{dispersion} %</>}
                         {" · "}
                         {LIBELLES_FIABILITE[actif.fiabilite]}

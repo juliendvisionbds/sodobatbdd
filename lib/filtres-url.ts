@@ -25,8 +25,7 @@ const UNITES_VALIDES: CodeUnite[] = [
   "m2", "ml", "m3", "u", "kg", "h", "j", "ens", "forfait",
 ];
 const COLONNES_TRI: ColonneTriPrix[] = [
-  "libelle", "lot", "unite", "prix_normaux", "prix_ts", "n", "dispersion",
-  "derniere_occurrence",
+  "libelle", "lot", "unite", "prix", "n", "derniere_occurrence",
 ];
 
 function premier(v: string | string[] | undefined): string | undefined {

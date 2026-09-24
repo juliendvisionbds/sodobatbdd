@@ -88,8 +88,8 @@ interface LigneStats {
   mediane_indexee: number;
   p25_indexe: number | null;
   p75_indexe: number | null;
-  premiere: string;
-  derniere: string;
+  premiere: string | null;
+  derniere: string | null;
   quantite_cumulee: number | null;
   zone_toujours_fiable: boolean;
 }
@@ -147,8 +147,8 @@ export function versStatsPrix(
       n >= 4 && r.p25_indexe !== null && r.p75_indexe !== null
         ? { p25: arr(Number(r.p25_indexe)), p75: arr(Number(r.p75_indexe)) }
         : null,
-    premiereOccurrence: r.premiere,
-    derniereOccurrence: r.derniere,
+    premiereOccurrence: r.premiere ?? null,
+    derniereOccurrence: r.derniere ?? null,
     quantiteCumulee:
       r.quantite_cumulee === null ? null : Number(r.quantite_cumulee),
     fiabilite: fiabilitePour(n, coefVariation),

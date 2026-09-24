@@ -10,7 +10,6 @@ import { lireFiltres, lirePage, lireTri, nbFiltresActifs, type ParamsRecherche }
 import { EnTete } from "@/components/EnTete";
 import { BarreRecherche } from "@/components/BarreRecherche";
 import { Filtres } from "@/components/Filtres";
-import { RailLots } from "@/components/RailLots";
 import { TableauPrix } from "@/components/TableauPrix";
 import { FicheOuvrage } from "@/components/FicheOuvrage";
 import { BoutonExport } from "@/components/BoutonExport";
@@ -109,34 +108,29 @@ export default async function PageTableau({
               <Suspense>
                 <div className="flex flex-wrap items-center gap-2.5 border-b border-hairline pb-4">
                   <BarreRecherche />
-                  <Filtres nbActifs={nbFiltresActifs(filtres)} />
+                  <Filtres nbActifs={nbFiltresActifs(filtres)} lots={lots} />
                 </div>
               </Suspense>
 
-              <div className="flex">
+              <div className="min-w-0 pt-3">
                 <Suspense>
-                  <RailLots lots={lots} />
+                  <TableauPrix
+                    page={page}
+                    indexe={indexe}
+                    tri={tri}
+                    baseVide={baseVide}
+                    estAdmin={estAdmin}
+                  />
                 </Suspense>
-                <div className="min-w-0 flex-1 pt-3 lg:pl-5">
-                  <Suspense>
-                    <TableauPrix
-                      page={page}
-                      indexe={indexe}
-                      tri={tri}
-                      lots={lots}
-                      baseVide={baseVide}
-                      estAdmin={estAdmin}
-                    />
-                  </Suspense>
-                </div>
               </div>
               <p className="mt-3 text-[12.5px] text-faint">
-                Cliquez sur une ligne pour ouvrir la fiche : prix par zone,
-                évolution, effet quantité et lignes sources. Montants en € HT.
-                Chaque prix est une médiane de <span className="mono">n</span> lignes
-                de devis : n ≥ 10 et dispersion faible = fiable, 4 à 9 = à confirmer,
-                moins = peu de données. Les ouvrages sans aucune ligne sont masqués
-                (filtre « Affichage »).
+                Prix de référence = médiane des <span className="mono">n</span> lignes
+                de devis validées (n ≥ 10 : fiable, 4 à 9 : à confirmer, moins :
+                peu de données). La réglette montre la fourchette ; ⓘ donne prix
+                bas, prix haut, moyenne, minimum et maximum ; le badge TS signale
+                des travaux supplémentaires, comptés à part. Cliquez sur une ligne
+                pour la fiche complète. Montants en € HT. Les ouvrages sans aucune
+                ligne sont masqués (filtre « Affichage »).
               </p>
             </>
           }

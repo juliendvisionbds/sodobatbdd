@@ -27,10 +27,9 @@ export async function GET(req: NextRequest) {
   const lignes: string[] = [
     [
       "Lot", "Code", "Ouvrage", "Unité",
-      indexe ? "Médiane normaux (actualisée)" : "Médiane normaux (brute)",
-      "n normaux", "Min normaux", "Max normaux",
-      indexe ? "Médiane TS (actualisée)" : "Médiane TS (brute)",
-      "n TS", "Écart TS (%)", "Fiabilité", "Dernière occurrence",
+      indexe ? "Prix de référence (actualisé)" : "Prix de référence (brut)",
+      "Prix bas", "Prix haut", "Moyenne", "Min", "Max", "n", "Chantiers",
+      "Prix TS", "n TS", "Écart TS (%)", "Fiabilité", "Dernier devis",
     ]
       .map(champ)
       .join(";"),
@@ -46,9 +45,13 @@ export async function GET(req: NextRequest) {
         champ(r.ouvrage.libelleDevis),
         champ(r.ouvrage.unite ? LIBELLES_UNITES[r.ouvrage.unite] : ""),
         nombreFr(vn?.mediane ?? null),
-        r.normaux?.n ?? "",
+        nombreFr(vn?.quartiles?.p25 ?? null),
+        nombreFr(vn?.quartiles?.p75 ?? null),
+        nombreFr(vn?.moyenne ?? null),
         nombreFr(vn?.min ?? null),
         nombreFr(vn?.max ?? null),
+        r.normaux?.n ?? "",
+        r.normaux?.nChantiers ?? "",
         nombreFr(vt?.mediane ?? null),
         r.ts?.n ?? "",
         nombreFr(r.deltaTs),

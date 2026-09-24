@@ -13,15 +13,19 @@ autres. La session reste ouverte 30 jours sur le même navigateur.
 
 - **Recherche** : tapez un mot du libellé (« ipn », « dalle », « ferraillage »).
   Les fautes de frappe des devis d'origine sont tolérées.
-- **Lots** : le rail de gauche filtre par lot et sous-lot.
-- **Filtres** : zone, période, normaux / TS, unité, fiabilité, n minimum.
-- **Lecture d'une ligne** : le prix affiché est la **médiane** des lignes
-  de devis rattachées à l'ouvrage, jamais une estimation. À côté :
+- **Filtres** : lot et sous-lot, zone, période, normaux / TS, unité,
+  fiabilité, n minimum.
+- **Lecture d'une ligne** : le **prix de référence** est la médiane des
+  lignes de devis rattachées à l'ouvrage, jamais une estimation. À côté :
+  - la **réglette** montre la fourchette des prix d'un coup d'œil ;
+  - **ⓘ** donne le prix bas et le prix haut (la moitié des devis se situe
+    entre les deux), la moyenne, le minimum, le maximum et le nombre de
+    chantiers ;
+  - le badge **TS** apparaît quand des travaux supplémentaires ont été
+    chiffrés : un TS est facturé à chaud, en petite quantité, il est plus
+    cher et compté à part. Survolez le badge pour son prix ;
   - **n** = nombre de lignes de devis retenues. n ≥ 10 avec dispersion
     faible : fiable. 4 à 9 : à confirmer. Moins : peu de données.
-  - la **réglette** montre min, quartiles et max ;
-  - **Prix normaux** et **Prix TS** (travaux supplémentaires) sont séparés :
-    un TS est chiffré à chaud, en petite quantité, il est plus cher.
 - **Prix actualisés / prix bruts** (en haut à droite) : les prix actualisés
   sont ramenés à aujourd'hui par l'index BT01. Tant que l'index n'est pas
   chargé, les deux valeurs sont identiques.

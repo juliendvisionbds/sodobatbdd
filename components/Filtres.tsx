@@ -1,12 +1,12 @@
 "use client";
 
-// Filtres en pastilles : Zone (multi), Période, Type, Unité, Fiabilité,
-// n minimum. Tout vit dans l'URL.
+// Filtres en pastilles : Lot (arbre), Zone (multi), Période, Type,
+// Unité, Fiabilité, n minimum, Affichage. Tout vit dans l'URL.
 
 import { useEffect, useRef, useState } from "react";
 import { useParamsUrl } from "./useParamsUrl";
 import { LIBELLES_ZONES, LIBELLES_UNITES } from "@/lib/types";
-import type { CodeUnite, CodeZone } from "@/lib/types";
+import type { CodeUnite, CodeZone, LotNoeud } from "@/lib/types";
 
 const ZONES = Object.keys(LIBELLES_ZONES) as CodeZone[];
 const UNITES: CodeUnite[] = ["m2", "ml", "m3", "u", "kg", "h"];
@@ -79,8 +79,66 @@ export function Case({
   );
 }
 
-export function Filtres({ nbActifs }: { nbActifs: number }) {
+function libelleLot(lots: LotNoeud[], id: string | null): string | null {
+  for (const l of lots) {
+    if (l.id === id) return l.libelle;
+    const e = libelleLot(l.enfants, id);
+    if (e) return e;
+  }
+  return null;
+}
+
+function OptionsLot({
+  lots,
+  profondeur,
+  lotActif,
+  sansPrix,
+  choisir,
+}: {
+  lots: LotNoeud[];
+  profondeur: number;
+  lotActif: string | null;
+  sansPrix: boolean;
+  choisir: (id: string | null) => void;
+}) {
+  return (
+    <>
+      {lots.map((l) => (
+        <span key={l.id} className="block">
+          <label
+            className="flex cursor-pointer items-center gap-2.5 rounded-[7px] py-1.5 pr-2.5 text-[13.5px] hover:bg-navy-tint"
+            style={{ paddingLeft: 10 + profondeur * 16 }}
+          >
+            <input
+              type="checkbox"
+              checked={lotActif === l.id}
+              onChange={() => choisir(lotActif === l.id ? null : l.id)}
+              className="accent-[var(--navy)]"
+            />
+            <span className="flex-1 truncate">{l.libelle}</span>
+            <span className="mono text-[11.5px] text-faint">
+              {sansPrix ? l.nbOuvragesCumule : l.nbAvecPrixCumule}
+            </span>
+          </label>
+          {l.enfants.length > 0 && (
+            <OptionsLot lots={l.enfants} profondeur={profondeur + 1}
+              lotActif={lotActif} sansPrix={sansPrix} choisir={choisir} />
+          )}
+        </span>
+      ))}
+    </>
+  );
+}
+
+export function Filtres({
+  nbActifs,
+  lots = [],
+}: {
+  nbActifs: number;
+  lots?: LotNoeud[];
+}) {
   const { params, modifier } = useParamsUrl();
+  const lot = params.get("lot");
 
   const zones = params.get("zones")?.split(",").filter(Boolean) ?? [];
   const unites = params.get("unites")?.split(",").filter(Boolean) ?? [];
@@ -103,6 +161,15 @@ export function Filtres({ nbActifs }: { nbActifs: number }) {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
+      {lots.length > 0 && (
+        <Pastille libelle={libelleLot(lots, lot) ?? "Lot"} actif={Boolean(lot)} enfants={
+          <span className="block min-w-[260px]">
+            <Case coche={!lot} libelle="Tous les lots" basculer={() => modifier({ lot: null })} />
+            <OptionsLot lots={lots} profondeur={0} lotActif={lot} sansPrix={sansPrix}
+              choisir={(id) => modifier({ lot: id })} />
+          </span>
+        } />
+      )}
       <Pastille libelle="Zone" actif={zones.length > 0} enfants={
         <>
           {ZONES.map((z) => (
@@ -202,6 +269,7 @@ export function Filtres({ nbActifs }: { nbActifs: number }) {
             modifier({
               q: null, lot: null, zones: null, type: null, unites: null,
               depuis: null, jusqua: null, nmin: null, fiab: null,
+              sansprix: null,
             })
           }
           className="vx-btn-ghost ml-1"

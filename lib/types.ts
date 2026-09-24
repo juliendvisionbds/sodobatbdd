@@ -66,8 +66,7 @@ export interface Tri<C extends string> {
 
 export type ColonneTriPrix =
   | "libelle" | "lot" | "unite"
-  | "prix_normaux" | "prix_ts"
-  | "n" | "dispersion" | "derniere_occurrence";
+  | "prix" | "n" | "derniere_occurrence";
 
 // ---------------------------------------------------------------------
 // Filtres
@@ -192,8 +191,9 @@ export interface StatsPrix {
   maxIndexe: EuroHT;
   quartilesIndexes: { p25: EuroHT; p75: EuroHT } | null;
 
-  premiereOccurrence: ISODate;
-  derniereOccurrence: ISODate;
+  /** null quand aucune pièce du périmètre n'est datée. */
+  premiereOccurrence: ISODate | null;
+  derniereOccurrence: ISODate | null;
   quantiteCumulee: number | null;
 
   fiabilite: Fiabilite;

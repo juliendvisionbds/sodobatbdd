@@ -213,20 +213,14 @@ export async function listerOuvrages(
   const sens = tri.sens === "asc" ? 1 : -1;
   const prix = (s: StatsPrix | null) =>
     s === null ? null : f.indexe ? s.medianeIndexee : s.mediane;
-  const dispersion = (r: OuvrageResume) => {
-    const s = r.normaux ?? r.ts;
-    const q = s ? (f.indexe ? s.quartilesIndexes : s.quartiles) : null;
-    return q && q.p25 > 0 ? q.p75 / q.p25 - 1 : null;
-  };
   const cle = (r: OuvrageResume): string | number | null => {
     switch (tri.colonne) {
       case "libelle": return r.ouvrage.libelleDevis.toLowerCase();
       case "lot": return r.ouvrage.lotCode ?? "";
       case "unite": return r.ouvrage.unite ?? "";
-      case "prix_normaux": return prix(r.normaux);
-      case "prix_ts": return prix(r.ts);
+      // prix de référence : travaux normaux, repli sur TS
+      case "prix": return prix(r.normaux ?? r.ts);
       case "n": return (r.normaux?.n ?? 0) + (r.ts?.n ?? 0);
-      case "dispersion": return dispersion(r);
       case "derniere_occurrence":
         return r.normaux || r.ts
           ? [r.normaux?.derniereOccurrence, r.ts?.derniereOccurrence]
