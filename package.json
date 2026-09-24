@@ -1,0 +1,49 @@
+{
+  "name": "sodobat-prix",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:local": "tsx scripts/db-local.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:structure": "tsx scripts/seed-structure.ts",
+    "db:reset-donnees": "tsx scripts/reset-donnees.ts",
+    "import": "tsx scripts/importer.ts",
+    "rattacher": "tsx scripts/rattacher.ts",
+    "db:acces": "tsx scripts/creer-acces.ts",
+    "test": "vitest run",
+    "auto-valider": "tsx scripts/auto-valider.ts",
+    "proposer-fusions": "tsx scripts/proposer-fusions.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.57.0",
+    "@supabase/supabase-js": "^2.112.4",
+    "@tanstack/react-table": "^8.21.3",
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.0.11",
+    "next": "^15.4.5",
+    "openai": "^7.5.0",
+    "postgres": "^3.4.7",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "recharts": "^3.1.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "dotenv": "^17.2.1",
+    "embedded-postgres": "^17.5.0-beta.15",
+    "tailwindcss": "^4.1.11",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,19 @@
+node_modules/
+.next/
+.pgdata/
+.env*.local
+.env
+*.tsbuildinfo
+next-env.d.ts
+
+# fichiers locaux, jamais dans le dépôt
+.DS_Store
+.tmp/
+.cursor/
+*.log
+
+# pièces clients : archivées dans Supabase Storage, pas servies en statique
+public/devis/
+
+# maquette statique de travail (le design system de référence est dans design-system/)
+design-system.html

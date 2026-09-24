@@ -1,0 +1,32 @@
+<!-- @dsCard height=320 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>cover</title>
+<style>
+body{margin:0;background:var(--canvas);}
+.cv{position:relative;width:960px;height:320px;overflow:hidden;background:var(--canvas);}
+.cv svg{position:absolute;inset:0;}
+.navy{fill:var(--navy)} .deep{fill:var(--navy-deep)} .tint{fill:var(--navy-tint)} .warn{fill:var(--warning)}
+.blk{rx:var(--radius-12)}
+.bar{rx:var(--radius-6)} .above{fill:var(--navy)} .below{fill:var(--navy-soft)}
+.txt{position:absolute;left:32px;bottom:30px;max-width:440px;}
+.nm{font-family:var(--font-display);font-weight:700;font-size:104px;line-height:.95;letter-spacing:-.03em;color:var(--ink);margin:0;}
+.tg{font-family:var(--font-sans);font-size:14px;color:var(--ink-muted);margin-top:14px;}
+</style></head>
+<body>
+<div class="cv">
+<svg viewBox="0 0 960 320" width="960" height="320" aria-hidden="true">
+  <!-- blocks: navy 176x176 (radius-12), navy-deep 112x112 (radius-12), navy-tint 400x196 (radius-12), warning 48x48 (radius-pill) -->
+  <!-- arrangement: tall navy slab bleeding off the top, a navy-tint chart field below right, one small warning disc as the only signal -->
+  <!-- pattern: the monthly bar chart (literal motif) — the demos are read through their bars; navy above average, navy-soft below -->
+  <!-- steps & radii: bar gap space-12+2, bar top radius-6, blocks radius-12, gutter space-24 -->
+  <rect class="navy blk" x="560" y="-12" width="176" height="96"/>
+  <rect class="deep blk" x="752" y="-12" width="184" height="64"/>
+  <rect class="tint blk" x="560" y="100" width="376" height="196"/>
+  <circle class="warn" cx="912" cy="76" r="14"/>
+  <rect class="bar below" x="584" y="173" width="30" height="105"/><rect class="bar above" x="628" y="131" width="30" height="147"/><rect class="bar below" x="672" y="156" width="30" height="122"/><rect class="bar below" x="716" y="185" width="30" height="93"/><rect class="bar above" x="760" y="122" width="30" height="156"/><rect class="bar above" x="804" y="144" width="30" height="134"/><rect class="bar below" x="848" y="166" width="30" height="112"/><rect class="bar above" x="892" y="137" width="30" height="141"/>
+</svg>
+<div class="txt"><p class="nm">Vision<br>Démos</p><div class="tg">Des données métier BTP lues pour vous, en un écran.</div></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000, "autoPort": true },
+    {
+      "name": "dev-local",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5502/sodobat", "npm", "run", "dev", "--", "-p", "3061"],
+      "port": 3061
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+:root {
+  --canvas: #F1F2F2;
+  --surface: #FFFFFF;
+  --surface-sunken: #F7F8F8;
+  --track: #EDEFEF;
+  --border: #DDE0E0;
+  --hairline: #E9EBEB;
+  --ink: #1E2226;
+  --ink-muted: #586066;
+  --ink-faint: #868E93;
+  --ink-disabled: #A3ABB0;
+  --navy: #23406E;
+  --navy-deep: #172C4D;
+  --navy-tint: #E9EEF6;
+  --navy-tint-border: #D3DDEC;
+  --navy-line: #C3D0E4;
+  --navy-soft: #B9C6DB;
+  --on-navy: #FFFFFF;
+  --positive: #22624A;
+  --positive-bg: #E3F1E9;
+  --positive-border: #C6E2D3;
+  --live: #2F6B4F;
+  --observation-bg: #E4EDE7;
+  --observation-border: #C9DBCF;
+  --negative: #B3392A;
+  --negative-bg: #FAEAEA;
+  --negative-border: #EFD3D0;
+  --warning: #8A6200;
+  --warning-bg: #F6EEDC;
+  --warning-border: #EADCBC;
+  --scrollbar: var(--border);
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-26: 26px;
+  --space-28: 28px;
+  --space-30: 30px;
+  --content-width: 1180px;
+  --radius-6: 6px;
+  --radius-7: 7px;
+  --radius-8: 8px;
+  --radius-9: 9px;
+  --radius-10: 10px;
+  --radius-11: 11px;
+  --radius-12: 12px;
+  --radius-pill: 999px;
+  --shadow-none: none;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+.page-title { font-family: var(--font-display); font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.025em; }
+.kpi-value { font-family: var(--font-display); font-size: 36px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; }
+.kpi-value-sm { font-family: var(--font-display); font-size: 30px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; }
+.figure { font-family: var(--font-display); font-size: 22px; line-height: 1.2; font-weight: 700; }
+.figure-sm { font-family: var(--font-display); font-size: 20px; line-height: 1.2; font-weight: 700; }
+.panel-title { font-family: var(--font-display); font-size: 19px; line-height: 1.3; font-weight: 700; }
+.delta { font-family: var(--font-display); font-size: 17px; line-height: 1.3; font-weight: 700; }
+.app-title { font-family: var(--font-display); font-size: 16px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
+.logo-initials { font-family: var(--font-display); font-size: 15px; line-height: 1; font-weight: 700; letter-spacing: 0.02em; }
+.lead { font-family: var(--font-sans); font-size: 16px; line-height: 1.55; font-weight: 400; }
+.body { font-family: var(--font-sans); font-size: 15px; line-height: 1.55; font-weight: 400; }
+.chat { font-family: var(--font-sans); font-size: 14.5px; line-height: 1.55; font-weight: 400; }
+.row { font-family: var(--font-sans); font-size: 14px; line-height: 1.55; font-weight: 400; }
+.small { font-family: var(--font-sans); font-size: 13.5px; line-height: 1.5; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 13px; line-height: 1.4; font-weight: 600; }
+.caption { font-family: var(--font-sans); font-size: 12.5px; line-height: 1.4; font-weight: 400; }
+.kicker { font-family: var(--font-sans); font-size: 12px; line-height: 1.4; font-weight: 600; letter-spacing: 0.04em; }
+.group-label { font-family: var(--font-sans); font-size: 12px; line-height: 1.4; font-weight: 600; letter-spacing: 0.08em; }
+.badge { font-family: var(--font-sans); font-size: 11.5px; line-height: 1.3; font-weight: 600; }
+.amount { font-family: var(--font-mono); font-size: 13px; line-height: 1.4; font-weight: 400; }
+.amount-key { font-family: var(--font-mono); font-size: 13.5px; line-height: 1.4; font-weight: 500; }
+.bar-value { font-family: var(--font-mono); font-size: 11px; line-height: 1.2; font-weight: 400; }
