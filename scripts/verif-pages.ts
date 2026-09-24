@@ -37,7 +37,7 @@ async function principal() {
 
   const cas: Array<{ chemin: string; attendu: string[]; statut?: number }> = [
     { chemin: "/", attendu: ["ouvrage", "Sodobat"] },
-    { chemin: "/?sansprix=1", attendu: ["sans prix"] },
+    { chemin: "/?sansprix=1", attendu: ["Affichage"] },
     {
       chemin: `/?ouvrage=${premierOuvrage.id}`,
       attendu: ["Par zone", "source"],
