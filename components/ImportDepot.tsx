@@ -5,13 +5,14 @@
 // envoi séquentiel (un fichier à la fois), statut visible par fichier.
 // =====================================================================
 
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   importerFichierAction,
   rafraichirAgregatsAction,
 } from "@/lib/actions/import";
 import type { BilanFichier } from "@/lib/extraction/pipeline";
+import { Alerte } from "./Alerte";
 
 type StatutLocal = "en_attente" | "traitement" | "insere" | "doublon" | "erreur";
 
@@ -37,6 +38,22 @@ export function ImportDepot() {
   const [survol, setSurvol] = useState(false);
   const [erreurAgregats, setErreurAgregats] = useState<string | null>(null);
   const [recalculEnCours, demarrerRecalcul] = useTransition();
+  /** Bilan du dernier lot terminé : remplace l'alerte « en cours ». */
+  const [bilanLot, setBilanLot] = useState<{
+    total: number; inseres: number; aRevoir: number; doublons: number; echecs: number;
+  } | null>(null);
+
+  // Tant que la file tourne, quitter ou recharger la page abandonnerait
+  // les fichiers non encore envoyés : le navigateur demande confirmation.
+  useEffect(() => {
+    if (!enCours) return;
+    const garde = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", garde);
+    return () => window.removeEventListener("beforeunload", garde);
+  }, [enCours]);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<FichierEnFile[]>([]);
 
@@ -49,6 +66,7 @@ export function ImportDepot() {
 
   const traiterFile = useCallback(async () => {
     setEnCours(true);
+    setBilanLot(null);
     for (const entree of fileRef.current) {
       if (entree.statut !== "en_attente") continue;
       majFichier(entree.cle, { statut: "traitement" });
@@ -74,6 +92,14 @@ export function ImportDepot() {
     } catch (e) {
       setErreurAgregats(e instanceof Error ? e.message : String(e));
     }
+    const lot = fileRef.current;
+    setBilanLot({
+      total: lot.length,
+      inseres: lot.filter((f) => f.statut === "insere").length,
+      aRevoir: lot.filter((f) => f.statut === "insere" && f.bilan?.statutDocument === "a_revoir").length,
+      doublons: lot.filter((f) => f.statut === "doublon").length,
+      echecs: lot.filter((f) => f.statut === "erreur").length,
+    });
     setEnCours(false);
     router.refresh();
   }, [router]);
@@ -132,8 +158,53 @@ export function ImportDepot() {
     });
   };
 
+  const nbTermines = file.filter((f) => !["en_attente", "traitement"].includes(f.statut)).length;
+  const enTraitement = file.find((f) => f.statut === "traitement");
+
   return (
     <section>
+      {enCours && (
+        <Alerte
+          ton="warn"
+          enCours
+          className="mb-3"
+          titre={`Import en cours · ${nbTermines} / ${file.length} pièce${file.length > 1 ? "s" : ""}`}
+          corps={
+            <>
+              Laissez cet onglet ouvert, <strong>sans le rafraîchir</strong> : les
+              fichiers partent d&apos;ici un par un, et chacun prend une à deux
+              minutes (lecture par l&apos;IA, contrôles, rattachement). Vous pouvez
+              naviguer dans un autre onglet.
+              {enTraitement && (
+                <span className="block truncate text-[12.5px]">
+                  En cours : {enTraitement.fichier.name}
+                </span>
+              )}
+            </>
+          }
+        />
+      )}
+      {!enCours && bilanLot && (
+        <Alerte
+          ton={bilanLot.echecs > 0 ? "neg" : "pos"}
+          className="mb-3"
+          titre={`Import terminé · ${bilanLot.total} pièce${bilanLot.total > 1 ? "s" : ""} traitée${bilanLot.total > 1 ? "s" : ""}`}
+          corps={
+            <>
+              {bilanLot.inseres} insérée{bilanLot.inseres > 1 ? "s" : ""}
+              {bilanLot.aRevoir > 0 ? ` (${bilanLot.aRevoir} à revoir)` : ""}
+              {bilanLot.doublons > 0 ? ` · ${bilanLot.doublons} doublon${bilanLot.doublons > 1 ? "s" : ""} ignoré${bilanLot.doublons > 1 ? "s" : ""}` : ""}
+              {bilanLot.echecs > 0 ? ` · ${bilanLot.echecs} échec${bilanLot.echecs > 1 ? "s" : ""} à relancer dans le flux ci-dessous` : ""}
+              . {erreurAgregats ? "Les prix n'ont pas pu être recalculés." : "Les prix ont été recalculés."}
+            </>
+          }
+          actions={
+            <button type="button" onClick={() => setBilanLot(null)} className="vx-btn-ghost">
+              Fermer
+            </button>
+          }
+        />
+      )}
       {erreurAgregats && (
         <div className="vx-insight vx-insight--warn mb-3 flex flex-wrap items-center gap-3 !py-3 text-[13.5px]">
           <span>
