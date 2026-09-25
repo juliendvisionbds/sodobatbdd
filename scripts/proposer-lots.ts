@@ -126,7 +126,13 @@ async function main() {
       `Lots possibles :\n${choix}\n\nOuvrages :\n` +
       paquet.map((o) => `${o.code} | ${o.libelle_normalise} | ${o.unite_reference ?? "?"}`).join("\n");
     try {
-      const rep = Affectation.parse(extraireJson(await appelerTexte(PROMPT_AFFECTATION, demande)));
+      // une réponse mal formée arrive parfois : on redemande une fois
+      let rep: z.infer<typeof Affectation>;
+      try {
+        rep = Affectation.parse(extraireJson(await appelerTexte(PROMPT_AFFECTATION, demande)));
+      } catch {
+        rep = Affectation.parse(extraireJson(await appelerTexte(PROMPT_AFFECTATION, demande)));
+      }
       for (const a of rep.affectations) {
         const id = parCode.get(a.code);
         const lot = a.lot.trim().toUpperCase();
