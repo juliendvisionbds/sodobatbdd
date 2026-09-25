@@ -725,11 +725,11 @@ async function main() {
       const [ligneRow] = await sql`insert into lignes_source
         (document_id, page, ordre, designation_brute, unite_brute, quantite,
          pu_ht, total_ht, unite_code, quantite_normalisee, est_titre,
-         est_forfait, attributs, controle_ligne, ecart, confiance)
+         attributs, controle_ligne, ecart, confiance)
         values
         (${docRow.id}, 1, ${ordre}, ${l.designation}, ${l.uniteBrute},
          ${l.quantite}, ${l.pu}, ${l.total}, ${codeUnite}, ${l.quantite},
-         false, ${l.estForfait}, ${sql.json(ATTRIBUTS[l.code] ?? {})},
+         false, ${sql.json(ATTRIBUTS[l.code] ?? {})},
          ${l.controle}, ${l.ecart}, 0.97)
         returning id`;
       await sql`insert into rattachements
@@ -777,12 +777,12 @@ async function main() {
     const [ligneRow] = await sql`insert into lignes_source
       (document_id, page, ordre, designation_brute, unite_brute, quantite,
        pu_ht, total_ht, unite_code, quantite_normalisee, est_titre,
-       est_forfait, attributs, controle_ligne, ecart, confiance)
+       attributs, controle_ligne, ecart, confiance)
       values
       (${doc.id}, 1, ${ordreRow.suivant}, ${designationBrute(o, iBrute)},
        ${graphies[i % graphies.length]}, ${quantite}, ${pu}, ${total},
        ${ALIAS_VERS_CODE.get(graphies[i % graphies.length]) ?? null},
-       ${quantite}, false, false, ${sql.json(ATTRIBUTS[o.code] ?? {})},
+       ${quantite}, false, ${sql.json(ATTRIBUTS[o.code] ?? {})},
        'ok', 0, 0.62)
       returning id`;
     const score = Math.round((0.42 + alea() * 0.36) * 1000) / 1000;

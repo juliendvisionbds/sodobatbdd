@@ -37,7 +37,7 @@ describe("règle par ligne", () => {
       where r.ouvrage_id = ${ipn160}
         and d.statut <> 'rejete' and l.controle_ligne <> 'ecart'
         and r.valide and not r.exclu_agregats and not l.est_titre
-        and l.pu_ht > 0 and not o.est_forfaitaire
+        and l.pu_ht > 0 and not o.est_forfaitaire and not l.est_forfait
         and coalesce(u.agregable, true)`;
     expect(s?.n ?? 0).toBe(Number(c.n));
   });

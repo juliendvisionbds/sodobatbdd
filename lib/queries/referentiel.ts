@@ -324,11 +324,13 @@ export async function validerParOuvrage(
     filtres?: FiltresCalage;
     action?: string;
   } = {},
-): Promise<{ ids: UUID[]; lotId: UUID }> {
+): Promise<{ ids: UUID[]; lotId: UUID; ignoresUnite: number }> {
   const exclure = o.exclureIds ?? [];
+  // par défaut, une ligne d'unité incompatible n'est jamais validée en masse
+  const strict = o.seulementUniteCompatible ?? true;
   const cond = condFiltresCalage(o.filtres, await lotsPourFiltres(o.filtres));
   const lignes = await sql`
-    select r.id
+    select r.id, unite_compatible(l.unite_code, o.unite_reference) as ok
     from rattachements r
     join lignes_source l on l.id = r.ligne_source_id
     join documents d on d.id = l.document_id
@@ -337,17 +339,16 @@ export async function validerParOuvrage(
       and r.valide = false
       and d.statut <> 'rejete'
       and not (r.id = any(${exclure}))
-      ${o.seulementUniteCompatible
-        ? sql`and (o.unite_reference is null or l.unite_code = o.unite_reference)`
-        : sql``}
       ${cond}`;
-  const ids = lignes.map((r) => r.id as UUID);
-  if (ids.length === 0) return { ids: [], lotId: nouveauLot() };
+  const retenues = strict ? lignes.filter((r) => Boolean(r.ok)) : lignes;
+  const ids = retenues.map((r) => r.id as UUID);
+  const ignoresUnite = lignes.length - retenues.length;
+  if (ids.length === 0) return { ids: [], lotId: nouveauLot(), ignoresUnite };
   const r = await sql.begin(async (tx) =>
     validerEnTransaction(tx as Tx, ids, o.action ?? "par_ouvrage", o),
   );
   await rafraichir(o);
-  return r;
+  return { ...r, ignoresUnite };
 }
 
 export async function devaliderRattachements(
@@ -656,7 +657,7 @@ export async function autoValiderRattachements(
       and o.actif
       and d.statut <> 'rejete'
       and l.unite_code is not null
-      and (o.unite_reference is null or o.unite_reference = l.unite_code)
+      and unite_compatible(l.unite_code, o.unite_reference)
     order by o.libelle_devis`;
 
   const parOuvrage = new Map<UUID, { libelleDevis: string; n: number }>();
@@ -699,7 +700,7 @@ export async function ouvragesAValider(minAttente = 2): Promise<
   const lignes = await sql`
     select ${SELECT_OUVRAGE},
            r.id as rattachement_id, ls.designation_brute, ls.unite_code, ls.pu_ht,
-           (o.unite_reference is null or o.unite_reference = ls.unite_code) as unite_ok,
+           unite_compatible(ls.unite_code, o.unite_reference) as unite_ok,
            count(*) over (partition by o.id)::int as n_attente
     from rattachements r
     join lignes_source ls on ls.id = r.ligne_source_id
@@ -791,6 +792,10 @@ function versLigneCalage(r: Record<string, unknown>): LigneCalage {
     controleLigne: (r.controle_ligne as ControleLigne) ?? "non_verifie",
     nbIdentiques:
       r.nb_identiques === undefined ? undefined : Number(r.nb_identiques),
+    uniteCompatible:
+      r.unite_compatible === undefined || r.unite_compatible === null
+        ? undefined
+        : Boolean(r.unite_compatible),
   };
 }
 
@@ -817,6 +822,7 @@ export async function rattachementsAValider(
            o.unite_reference as o_unite_reference,
            o.est_forfaitaire as o_est_forfaitaire, o.actif as o_actif,
            count(*) over (partition by r.ouvrage_id)::int as nb_meme_ouvrage,
+           unite_compatible(l.unite_code, o.unite_reference) as unite_compatible,
            count(*) over ()::int as total_compte
     from rattachements r
     join lignes_source l on l.id = r.ligne_source_id
@@ -869,6 +875,7 @@ export async function rattachementsAValider(
       statutDocument: r.statut_document as StatutDocument,
       controleLigne: (r.controle_ligne as ControleLigne) ?? "non_verifie",
       nbMemeOuvrage: Number(r.nb_meme_ouvrage) - 1,
+      uniteCompatible: Boolean(r.unite_compatible),
     });
   }
 
@@ -897,6 +904,9 @@ export async function rattachementsParOuvrage(
   const groupes = await sql`
     select ${SELECT_OUVRAGE},
            count(*) filter (where not r.valide)::int as en_attente,
+           count(*) filter (where not r.valide and ls.pu_ht > 0
+                              and ls.controle_ligne <> 'ecart' and not ls.est_forfait
+                              and unite_compatible(ls.unite_code, o.unite_reference))::int as impact,
            (select count(*)::int from rattachements rv where rv.ouvrage_id = o.id and rv.valide) as validees,
            (select count(*)::int from rattachements rv where rv.ouvrage_id = o.id and rv.valide
               and rv.valide_par in ('auto', 'auto-llm')) as auto,
@@ -910,7 +920,7 @@ export async function rattachementsParOuvrage(
     where r.valide = false and d.statut <> 'rejete' and o.actif
     ${condFiltresCalage(filtres, lotIds, "ls")}
     group by o.id, l.code, l.libelle
-    order by en_attente desc, o.libelle_devis
+    order by impact desc, en_attente desc, o.libelle_devis
     limit ${parPage} offset ${(page - 1) * parPage}
   `;
 
@@ -921,6 +931,7 @@ export async function rattachementsParOuvrage(
   const lignes = await sql`
     select r.id as rattachement_id, r.score, r.methode, r.valide_par,
            r.exclu_agregats, r.motif_exclusion, r.ouvrage_id,
+           unite_compatible(l.unite_code, o.unite_reference) as unite_compatible,
            ${SELECT_LIGNE_CALAGE}
     from rattachements r
     join lignes_source l on l.id = r.ligne_source_id
@@ -945,6 +956,7 @@ export async function rattachementsParOuvrage(
       return {
         ouvrage: versOuvrage(g),
         nbEnAttente: Number(g.en_attente),
+        nbImpact: Number(g.impact),
         nbValidees: Number(g.validees),
         nbAuto: Number(g.auto),
         echantillon: (g.echantillon as string[]) ?? [],

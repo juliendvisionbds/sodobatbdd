@@ -196,20 +196,26 @@ export async function insererDocument(params: {
     returning id`;
 
   for (const { ligne, statut, ecart } of controle.lignes) {
-    const { code: uniteCode, facteur } = await normaliserUnite(ligne.unite_brute);
+    const { code: uniteBase, facteur } = await normaliserUnite(ligne.unite_brute);
     const quantiteNormalisee =
       ligne.quantite != null ? +(ligne.quantite * facteur).toFixed(3) : null;
-    const estForfait = uniteCode === "forfait" || uniteCode === "ens";
+    // « 4 ens » = quatre pièces identiques : un prix unitaire comparable.
+    // « 1 ens » = prix global d'une prestation : un forfait (est_forfait,
+    // colonne générée en base, découle de unite_code).
+    const uniteCode =
+      uniteBase === "ens" && ligne.quantite != null && ligne.quantite > 1
+        ? "u"
+        : uniteBase;
 
     await sql`insert into lignes_source
       (document_id, page, ordre, designation_brute, unite_brute,
        quantite, pu_ht, total_ht,
-       unite_code, quantite_normalisee, est_titre, est_forfait,
+       unite_code, quantite_normalisee, est_titre,
        attributs, controle_ligne, ecart, confiance)
       values
       (${doc.id}, ${ligne.page}, ${ligne.ordre}, ${ligne.designation},
        ${ligne.unite_brute}, ${ligne.quantite}, ${ligne.pu_ht}, ${ligne.total_ht},
-       ${uniteCode}, ${quantiteNormalisee}, ${ligne.est_titre}, ${estForfait},
+       ${uniteCode}, ${quantiteNormalisee}, ${ligne.est_titre},
        ${sql.json(ligne.attributs as never)}, ${statut}, ${ecart},
        ${ligne.confiance})`;
   }

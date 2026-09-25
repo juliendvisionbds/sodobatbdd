@@ -55,8 +55,10 @@ const ReponseRegroupement = z.object({
 });
 
 const PROMPT_REGROUPEMENT = `
-Tu construis le référentiel d'ouvrages d'une entreprise de gros œuvre du Var /
-Alpes-Maritimes, à partir de lignes de devis réelles.
+Tu construis le référentiel d'ouvrages d'une entreprise de bâtiment du Var /
+Alpes-Maritimes (gros œuvre principalement, mais elle chiffre aussi en tous
+corps d'état : électricité, plomberie, menuiserie, peinture, VRD), à partir
+de lignes de devis réelles.
 
 On te donne des lignes de devis numérotées (numéro, désignation verbatim avec
 ses fautes, unité, attributs déjà extraits). Regroupe celles qui désignent LA
@@ -82,9 +84,14 @@ Règles :
    (la localisation reste un attribut de la ligne, pas de l'ouvrage).
 3. Si une ligne correspond à un ouvrage EXISTANT fourni dans la liste,
    référence-le par ouvrage_code_existant au lieu d'en créer un nouveau.
-4. Les lignes illisibles, trop vagues ("travaux divers") ou purement
+4. Seules vont dans lignes_hors_perimetre les lignes purement
    administratives (retenue de garantie, révision de prix, remise
-   commerciale) vont dans lignes_hors_perimetre.
+   commerciale, sous-total, acompte) ou illisibles. Une prestation d'un
+   autre corps d'état (disjoncteur, bouche de soufflage, châssis vitré)
+   est un ouvrage à part entière : range-la dans le lot métier
+   correspondant (EL, PL, ME, PE, VR, SO). Une désignation vague mais
+   chiffrée ("préparation du support", "partie ouest") reste un ouvrage,
+   rattaché au lot le plus plausible.
 5. Chaque numéro de ligne fourni apparaît exactement une fois (dans un
    groupe ou dans lignes_hors_perimetre). Recopie les numéros tels quels,
    ce sont des entiers.
@@ -160,7 +167,8 @@ export async function rattacherDocument(
   o: { seulementAvecPrix?: boolean } = {},
 ): Promise<ResultatRattachement> {
   const lignes = await sql`
-    select l.id, l.designation_brute, l.unite_code, l.attributs
+    select l.id, l.designation_brute, l.unite_code, l.unite_brute, l.quantite,
+           l.attributs
     from lignes_source l
     left join rattachements r on r.ligne_source_id = l.id
     where l.document_id = ${documentId}
@@ -181,15 +189,17 @@ export async function rattacherDocument(
   // --- 1. Trigramme contre les ouvrages existants ----------------------
   const restantes: Array<(typeof lignes)[number]> = [];
   for (const ligne of lignes) {
+    // un ouvrage d'unité compatible d'abord ; à défaut, le plus proche
     const [meilleur] = await sql`
       select id, similarity(f_unaccent(lower(libelle_normalise)),
-                            f_unaccent(lower(${ligne.designation_brute}))) as score
+                            f_unaccent(lower(${ligne.designation_brute}))) as score,
+             unite_compatible(${(ligne.unite_code as string) ?? null}, unite_reference) as ok
       from ouvrages
       where actif = true
         and similarity(f_unaccent(lower(libelle_normalise)),
                        f_unaccent(lower(${ligne.designation_brute})))
             >= ${SEUIL_OUVRAGE_TRIGRAMME}
-      order by score desc
+      order by ok desc, score desc
       limit 1`;
     if (meilleur) {
       await creerRattachement(
@@ -241,7 +251,11 @@ export async function rattacherDocument(
       `Lignes à traiter :\n${paquet
         .map(
           (l, i) =>
-            `${i + 1}. ${l.designation_brute} | unité=${l.unite_code ?? "?"} | attributs=${JSON.stringify(l.attributs)}`,
+            `${i + 1}. ${l.designation_brute} | unité=${l.unite_code ?? "?"}${
+              l.unite_code === "u" && /^ens/i.test(String(l.unite_brute ?? ""))
+                ? ` (ens ×${l.quantite})`
+                : ""
+            } | attributs=${JSON.stringify(l.attributs)}`,
         )
         .join("\n")}`,
     ].join("\n\n");
@@ -256,17 +270,23 @@ export async function rattacherDocument(
       return paquet[n - 1].id as string;
     };
 
-    const horsPerimetre = reponse.lignes_hors_perimetre
+    const proposeesHors = reponse.lignes_hors_perimetre
       .map(ligneParNumero)
       .filter((id): id is string => id != null);
+    // Garde-fou : une ligne chiffrée dont la désignation n'est pas
+    // administrative n'est jamais écartée (elle reste « sans ouvrage »).
+    const horsPerimetre =
+      proposeesHors.length === 0
+        ? []
+        : (
+            await sql`update lignes_source
+              set hors_perimetre = true, motif_hors_perimetre = 'llm'
+              where id = any(${proposeesHors})
+                and not (pu_ht > 0 and quantite > 0
+                         and not est_designation_administrative(designation_recherche))
+              returning id`
+          ).map((r) => r.id as string);
     resultat.lignesIgnorees += horsPerimetre.length;
-    if (horsPerimetre.length > 0) {
-      // mémorisé : ces lignes ne repasseront pas à chaque relance et
-      // n'apparaissent pas dans la file « Sans ouvrage »
-      await sql`update lignes_source
-        set hors_perimetre = true, motif_hors_perimetre = 'llm'
-        where id = any(${horsPerimetre})`;
-    }
 
     for (const prop of reponse.ouvrages) {
       const lignesValides = prop.lignes

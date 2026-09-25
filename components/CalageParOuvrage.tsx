@@ -82,10 +82,17 @@ export function CalageParOuvrage({
 
   const toutValider = (g: GroupeCalage) => {
     demarrer(async () => {
-      const ids = await validerOuvrageAction(g.ouvrage.id, filtres);
-      setGroupes((gs) => gs.filter((x) => x.ouvrage.id !== g.ouvrage.id));
+      const { ids, ignoresUnite } = await validerOuvrageAction(g.ouvrage.id, filtres);
+      if (ignoresUnite > 0) {
+        // les lignes d'unité incompatible restent en attente : le groupe reste
+        retirerLignes(g.ouvrage.id, ids);
+      } else {
+        setGroupes((gs) => gs.filter((x) => x.ouvrage.id !== g.ouvrage.id));
+      }
       setGeste({
-        message: `${ids.length} ligne${ids.length > 1 ? "s" : ""} validée${ids.length > 1 ? "s" : ""} vers « ${g.ouvrage.libelleDevis} »`,
+        message:
+          `${ids.length} ligne${ids.length > 1 ? "s" : ""} validée${ids.length > 1 ? "s" : ""} vers « ${g.ouvrage.libelleDevis} »` +
+          (ignoresUnite > 0 ? ` · ${ignoresUnite} ignorée${ignoresUnite > 1 ? "s" : ""} (unité incompatible)` : ""),
         n: ids.length,
       });
       router.refresh();
@@ -141,7 +148,7 @@ export function CalageParOuvrage({
     setSelection((s) => {
       const n = new Set(s);
       for (const l of g.lignes) {
-        if (!l.rattachementId) continue;
+        if (!l.rattachementId || l.uniteCompatible === false) continue;
         if (coche) n.add(l.rattachementId);
         else n.delete(l.rattachementId);
       }
@@ -160,7 +167,9 @@ export function CalageParOuvrage({
         <div className="flex flex-col gap-[22px]">
           {groupes.map((g) => {
             const nbCoches = g.lignes.filter((l) => l.rattachementId && selection.has(l.rattachementId)).length;
-            const tousCoches = g.lignes.length > 0 && nbCoches === g.lignes.length;
+            const compatibles = g.lignes.filter((l) => l.uniteCompatible !== false);
+            const nbIncompatiblesVisibles = g.lignes.length - compatibles.length;
+            const tousCoches = compatibles.length > 0 && nbCoches === compatibles.length;
             return (
               <article key={g.ouvrage.id} className="vx-panel !p-0">
                 <header className="flex flex-wrap items-start gap-x-4 gap-y-2 border-b border-line px-6 py-4">
@@ -179,6 +188,17 @@ export function CalageParOuvrage({
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="badge b-navy">{g.nbEnAttente} en attente</span>
+                    <span
+                      className="text-[12.5px] text-sub"
+                      title="Lignes chiffrées, cohérentes, d'unité compatible : celles qui entreront dans le prix une fois validées"
+                    >
+                      {g.nbImpact} entreront dans les prix
+                      {nbIncompatiblesVisibles > 0 && (
+                        <span className="badge b-amber ml-1.5" title="Unité différente de celle de l'ouvrage : à rattacher ailleurs ou à laisser">
+                          {nbIncompatiblesVisibles} unité ≠
+                        </span>
+                      )}
+                    </span>
                     <span className="text-[12.5px] text-sub">
                       {g.nbValidees} validée{g.nbValidees > 1 ? "s" : ""}
                       {g.nbAuto > 0 ? ` (${g.nbAuto} auto)` : ""}
@@ -197,7 +217,9 @@ export function CalageParOuvrage({
                       onClick={() => toutValider(g)}
                       className="vx-btn !px-4 !py-2 !text-[14px]"
                     >
-                      Tout valider ({g.nbEnAttente})
+                      {g.nbImpact < g.nbEnAttente
+                        ? `Valider les ${g.nbImpact} compatibles`
+                        : `Tout valider (${g.nbEnAttente})`}
                     </button>
                   </div>
                 </header>
@@ -225,12 +247,14 @@ export function CalageParOuvrage({
                     </thead>
                     <tbody>
                       {g.lignes.map((l) => (
-                        <tr key={l.id}>
+                        <tr key={l.id} className={l.uniteCompatible === false ? "opacity-60" : ""}>
                           <td>
                             <input
                               type="checkbox"
                               aria-label="Sélectionner la ligne"
                               checked={Boolean(l.rattachementId && selection.has(l.rattachementId))}
+                              disabled={l.uniteCompatible === false}
+                              title={l.uniteCompatible === false ? "Unité incompatible : utilisez « Changer d'ouvrage »" : undefined}
                               onChange={() => l.rattachementId && basculer(l.rattachementId)}
                               className="accent-[var(--navy)]"
                             />
@@ -241,8 +265,11 @@ export function CalageParOuvrage({
                             </span>
                             <span className="text-[12px] text-faint">
                               {l.unite ? LIBELLES_UNITES[l.unite] : (l.uniteBrute ?? "—")}
-                              {l.unite && g.ouvrage.unite && l.unite !== g.ouvrage.unite && (
-                                <span className="badge b-amber ml-1.5" title="L'unité de la ligne diffère de celle de l'ouvrage">
+                              {l.uniteCompatible === false && (
+                                <span
+                                  className="badge b-amber ml-1.5"
+                                  title={`Unité ${l.unite ?? "inconnue"} ≠ ${g.ouvrage.unite ?? "?"} : cette ligne ne peut pas alimenter ce prix`}
+                                >
                                   unité ≠
                                 </span>
                               )}

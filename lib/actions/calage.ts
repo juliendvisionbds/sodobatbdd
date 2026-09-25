@@ -89,11 +89,11 @@ export async function validerRattachementsAction(ids: UUID[]): Promise<UUID[]> {
 export async function validerOuvrageAction(
   ouvrageId: UUID,
   filtres?: FiltresCalage,
-): Promise<UUID[]> {
+): Promise<{ ids: UUID[]; ignoresUnite: number }> {
   await exigerAdmin();
   const r = await referentiel.validerParOuvrage(ouvrageId, { filtres });
   revalider();
-  return r.ids;
+  return { ids: r.ids, ignoresUnite: r.ignoresUnite };
 }
 
 export async function devaliderRattachementsAction(ids: UUID[]): Promise<number> {

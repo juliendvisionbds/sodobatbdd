@@ -392,6 +392,7 @@ export interface RattachementAValider {
   controleLigne: ControleLigne;
   /** Autres rattachements en attente sur le même ouvrage. */
   nbMemeOuvrage: number;
+  uniteCompatible: boolean;
 }
 
 /** Filtres de l'écran de calage (dans l'URL : lot, methode, doc, q). */
@@ -413,12 +414,16 @@ export interface LigneCalage extends LigneSourceContexte {
   controleLigne: ControleLigne;
   /** Lignes de même désignation normalisée dans la file (sans ouvrage). */
   nbIdentiques?: number;
+  /** false : l'unité de la ligne ne peut pas alimenter le prix de l'ouvrage. */
+  uniteCompatible?: boolean;
 }
 
 /** Groupe de la vue « par ouvrage » : un ouvrage et ses lignes en attente. */
 export interface GroupeCalage {
   ouvrage: Ouvrage;
   nbEnAttente: number;
+  /** Lignes en attente qui entreront dans les prix une fois validées. */
+  nbImpact: number;
   nbValidees: number;
   nbAuto: number;
   /** Quelques désignations verbatim, pour situer l'ouvrage d'un coup d'œil. */
