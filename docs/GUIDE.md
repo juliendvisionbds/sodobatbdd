@@ -26,9 +26,6 @@ autres. La session reste ouverte 30 jours sur le même navigateur.
     cher et compté à part. Survolez le badge pour son prix ;
   - **n** = nombre de lignes de devis retenues. n ≥ 10 avec dispersion
     faible : fiable. 4 à 9 : à confirmer. Moins : peu de données.
-- **Prix actualisés / prix bruts** (en haut à droite) : les prix actualisés
-  sont ramenés à aujourd'hui par l'index BT01. Tant que l'index n'est pas
-  chargé, les deux valeurs sont identiques.
 - Par défaut, les ouvrages sans aucune ligne validée sont masqués. Filtre
   **Affichage → Afficher les ouvrages sans prix** pour les voir.
 
@@ -45,6 +42,15 @@ mais elle est cohérente en elle-même et compte.
 
 L'administrateur peut **écarter** une ligne aberrante des statistiques
 (motif demandé) et la réintégrer ensuite.
+
+## 3 bis. Frais de chantier
+
+Onglet **Frais de chantier** : installation, base vie, études, amenée et
+repli, compte prorata. Ces lignes n'ont pas de prix unitaire ; l'outil
+donne la **part médiane du montant du chantier** (en %), le montant médian,
+n et la taille des chantiers observés. Une ligne « 1 ens » (prix global
+d'une prestation) est traitée comme un forfait ; « 4 ens » compte comme
+4 unités.
 
 ## 4. Historique des chantiers
 
@@ -88,6 +94,20 @@ bien à tel ouvrage. Une ligne ne compte dans les prix qu'une fois validée.
 - **Documents à revoir** : voir la pièce d'origine, **Accepter** (le total
   est jugé juste), **Rejeter** avec motif (toutes ses lignes sortent des
   prix), cocher **TS** si la pièce est un devis de travaux supplémentaires.
+  **Modifier la pièce…** permet de saisir la date, le client, le chantier
+  et la zone ; le second onglet « Pièces incomplètes » liste celles où il
+  manque l'un des trois (sans date : pas d'évolution dans le temps ; sans
+  zone : pas de prix par zone).
+- **Unités** : une ligne dont l'unité diffère de celle de l'ouvrage (m² vers
+  ml, ensemble vers m³) est grisée avec le badge « unité ≠ » ; elle n'est
+  jamais validée en masse. Utilisez « Changer d'ouvrage » pour la rattacher
+  à un ouvrage de la bonne unité.
+- **Hors périmètre** : lignes que l'IA a écartées (administratif,
+  illisible). Une prestation réelle, même d'un autre corps d'état, doit être
+  **réintégrée** : elle rejoint « Sans ouvrage ».
+- **Lots** : arborescence des lots (créer, renommer, déplacer, supprimer),
+  rangement des ouvrages par sélection, et proposition de sous-lots par
+  l'IA à accepter ou refuser, puis « Ranger les ouvrages ».
 - **Doublons** : deux ouvrages qui désignent la même prestation ; fusionner
   (confirmation demandée) ou ignorer.
 - **Sans ouvrage** : lignes à prix qu'aucune proposition n'a couvertes ;

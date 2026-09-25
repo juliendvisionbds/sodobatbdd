@@ -14,6 +14,7 @@ import {
   type ControleLigne,
   type Fiabilite,
   type FiltresPrix,
+  type FraisResume,
   type LigneSourceContexte,
   type Ouvrage,
   type OuvrageResume,
@@ -452,6 +453,42 @@ export async function effetQuantite(
     : null;
 
   return { points, seuil };
+}
+
+/** Écran Frais de chantier : tous les ouvrages forfaitaires actifs, avec
+ *  leurs statistiques (part du chantier) quand des lignes sont validées. */
+export async function listerFrais(): Promise<FraisResume[]> {
+  const lignes = await sql`
+    select ${SELECT_OUVRAGE},
+           f.est_ts, f.n, f.montant_moyen, f.montant_median,
+           f.pct_moyen_chantier, f.pct_median_chantier, f.chantier_min, f.chantier_max
+    from ouvrages o
+    left join lots l on l.id = o.lot_id
+    left join mv_forfaits_ouvrage f on f.ouvrage_id = o.id
+    where o.actif and o.est_forfaitaire
+    order by f.pct_median_chantier desc nulls last, o.libelle_devis`;
+  const parOuvrage = new Map<UUID, FraisResume>();
+  for (const r of lignes) {
+    const id = r.id as UUID;
+    const entree = parOuvrage.get(id) ?? { ouvrage: versOuvrage(r), normaux: null, ts: null };
+    if (r.n !== null && r.n !== undefined) {
+      const stats: StatsForfait = {
+        ouvrageId: id,
+        estTs: Boolean(r.est_ts),
+        n: Number(r.n),
+        montantMoyen: Number(r.montant_moyen),
+        montantMedian: Number(r.montant_median),
+        pctMoyenChantier: Number(r.pct_moyen_chantier),
+        pctMedianChantier: Number(r.pct_median_chantier),
+        chantierMin: Number(r.chantier_min),
+        chantierMax: Number(r.chantier_max),
+      };
+      if (stats.estTs) entree.ts = stats;
+      else entree.normaux = stats;
+    }
+    parOuvrage.set(id, entree);
+  }
+  return [...parOuvrage.values()];
 }
 
 // ---------------------------------------------------------------------

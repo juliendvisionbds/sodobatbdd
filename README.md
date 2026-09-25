@@ -14,9 +14,10 @@ Guide utilisateur (métreurs et direction) : [docs/GUIDE.md](docs/GUIDE.md).
 | Route | Contenu | Accès |
 |---|---|---|
 | `/` | Tableau des prix : recherche floue, filtres, rail des lots, réglettes de dispersion, export CSV. Clic sur une ligne → fiche ouvrage (prix vedette, normaux/TS, zones, évolution, effet quantité, co-occurrences, lignes sources avec lien vers la pièce d'origine). Les ouvrages sans ligne validée sont masqués par défaut. | tous |
-| `/historique` | Tous les documents et lignes, verbatim, sans moyenne. Par pièce ou par ligne. Recherche client tolérante aux fautes. | tous |
+| `/frais` | Frais de chantier : ouvrages forfaitaires en part médiane du montant du chantier (%), montant médian, n. | tous |
+| `/historique` | Tous les documents et lignes, verbatim, sans moyenne. Par pièce ou par ligne. Recherche client tolérante aux fautes. Badge « à compléter » quand date, zone ou client manque ; l'administrateur modifie la pièce sur place. | tous |
 | `/chat` | Assistant. Outils typés uniquement, jamais de SQL généré. Chaque prix cité avec son `n` et sa période, sources affichées. | tous |
-| `/calage` | Six onglets : **Par ouvrage** (validation en masse), **Ligne à ligne** (V / M / N / →), **Documents à revoir** (accepter, rejeter, TS), **Doublons** (fusions proposées), **Sans ouvrage** (rattacher ou créer), **Référentiel** (éditer, fusionner). **Z** annule le dernier geste. | admin |
+| `/calage` | Huit onglets : **Par ouvrage** (validation en masse, unités incompatibles exclues), **Ligne à ligne** (V / M / N / →), **Documents à revoir** (accepter, rejeter, TS, modifier la pièce, pièces incomplètes), **Doublons** (fusions proposées par trigramme et par sens), **Sans ouvrage**, **Hors périmètre** (lignes écartées par l'IA à relire), **Lots** (arborescence, rangement, proposition de l'IA), **Référentiel**. **Z** annule le dernier geste. | admin |
 | `/import` | Dépôt de pièces (PDF, XLS, XLSX, ODS), flux d'import, reprise des échecs et des imports bloqués. | admin |
 | `/connexion` | Un champ code d'accès. | — |
 
@@ -97,6 +98,17 @@ npm run rattacher -- --avec-prix
 npm run proposer-fusions -- --dry-run
 npm run proposer-fusions
 
+# Dates manquantes (extraction brute puis nom de fichier)
+npm run db:dates -- --dry-run
+npm run db:dates
+
+# Doublons par sens (embeddings OpenAI, pgvector requis : Supabase)
+npm run proposer-fusions -- --embeddings
+
+# Arborescence de lots proposée par l'IA (revue dans /calage → Lots)
+npm run proposer-lots -- --dry-run
+npm run proposer-lots
+
 # Auto-validation des propositions sûres (annulable depuis /calage)
 npm run auto-valider -- --dry-run
 npm run auto-valider
@@ -168,7 +180,11 @@ passés (`_migrations`).
   `exigerAdmin()` (`lib/session-serveur.ts`).
 - **Pièces d'origine** : servies par `/api/documents/:id/fichier` (lien
   signé Storage, 1 h). Rien dans `public/`.
-- **Index BT01** : `index_prix` est à 1,0 (neutre) tant que l'index réel
-  n'est pas chargé ; « prix actualisés » = « prix bruts » jusque-là.
+- **Index BT01** : `index_prix` est à 1,0 (neutre). La bascule « prix
+  actualisés » a été retirée de l'interface ; les colonnes indexées restent
+  calculées en SQL pour un usage futur.
+- **Unités** : `unite_compatible(ligne, ouvrage)` (`db/06_qualite.sql`) est
+  la règle unique ; « ens » en quantité > 1 est réécrit en `u` à l'import,
+  `est_forfait` est une colonne générée.
 - **Base locale** : `embedded-postgres` dans `.pgdata/` (ignoré par git),
   sans pgvector (`scripts/migrate.ts` adapte `vector(1536)` → `text`).

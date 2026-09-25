@@ -49,7 +49,11 @@ async function principal() {
     { chemin: "/calage?onglet=documents", attendu: ["revoir"] },
     { chemin: "/calage?onglet=doublons", attendu: ["oublon"] },
     { chemin: "/calage?onglet=sans-ouvrage", attendu: ["ouvrage"] },
+    { chemin: "/calage?onglet=hors-perimetre", attendu: ["carté"] },
+    { chemin: "/calage?onglet=lots", attendu: ["Arborescence"] },
+    { chemin: "/calage?onglet=documents&incomplets=1", attendu: ["incompl"] },
     { chemin: "/calage?onglet=referentiel", attendu: ["Fusionner"] },
+    { chemin: "/frais", attendu: ["Frais de chantier"] },
     { chemin: "/chat", attendu: ["Assistant"] },
     { chemin: "/api/export?q=beton", attendu: ["Lot"] },
     ...(premierDocument

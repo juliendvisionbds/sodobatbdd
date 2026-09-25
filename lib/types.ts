@@ -25,7 +25,7 @@ export type CodeUnite =
 
 export type CodeZone = "06" | "MERCANTOUR" | "TOULON" | "83_AUTRE";
 
-export type TypeDocument = "devis" | "facture" | "situation" | "avenant";
+export type TypeDocument = "devis" | "facture" | "situation" | "avenant" | "indetermine";
 export type StatutDocument = "importe" | "a_revoir" | "valide" | "rejete";
 
 /** Filtre utilisateur. `tous` agrège normaux + TS. */
@@ -89,7 +89,8 @@ export interface FiltresPrix {
   jusquA?: ISODate;
   nMinimum?: number;
   fiabiliteMinimum?: Fiabilite;
-  /** Défaut true : les prix affichés sont ramenés à aujourd'hui. */
+  /** Obsolète : la bascule prix actualisés a été retirée (index BT01 non
+   *  chargé). Toujours false ; les colonnes indexées restent calculées. */
   indexe?: boolean;
   /** Défaut false : les ouvrages forfaitaires ont leur propre écran. */
   inclureForfaits?: boolean;
@@ -101,7 +102,7 @@ export const FILTRES_DEFAUT: Required<
   Pick<FiltresPrix, "typeTravaux" | "indexe" | "inclureForfaits" | "inclureSousLots">
 > = {
   typeTravaux: "tous",
-  indexe: true,
+  indexe: false,
   inclureForfaits: false,
   inclureSousLots: true,
 };
@@ -127,6 +128,17 @@ export interface LotNoeud extends Lot {
   /** Ouvrages ayant au moins une ligne comptée dans les prix. */
   nbAvecPrix: number;
   nbAvecPrixCumule: number;
+}
+
+export interface LotPropose {
+  code: string;
+  libelle: string;
+  parentCode: string | null;
+  ordre: number;
+  statut: "propose" | "accepte" | "refuse";
+  motif: string | null;
+  nbOuvrages: number;
+  lotId: UUID | null;
 }
 
 export interface Ouvrage {
@@ -222,6 +234,13 @@ export interface OuvrageResume {
   ts: StatsPrix | null;
   /** Écart relatif médian TS / normaux, en %. null si l'un des deux manque. */
   deltaTs: number | null;
+}
+
+/** Ligne de l'écran Frais de chantier. */
+export interface FraisResume {
+  ouvrage: Ouvrage;
+  normaux: StatsForfait | null;
+  ts: StatsForfait | null;
 }
 
 export interface StatsZone {
@@ -335,7 +354,8 @@ export interface Client {
 export interface DocumentResume {
   id: UUID;
   numero: string | null;
-  date: ISODate;
+  /** null : pièce non datée (à compléter dans le calage). */
+  date: ISODate | null;
   type: TypeDocument;
   estTs: boolean;
   client: Pick<Client, "id" | "nom"> | null;
@@ -351,6 +371,7 @@ export interface DocumentResume {
 
 export interface DocumentDetail extends DocumentResume {
   lignes: LigneSource[];
+  chantierCodePostal: string | null;
   /** Écart entre la somme des lignes et le total imprimé. 0 si cohérent. */
   ecartTotal: EuroHT | null;
 }
@@ -416,6 +437,8 @@ export interface LigneCalage extends LigneSourceContexte {
   nbIdentiques?: number;
   /** false : l'unité de la ligne ne peut pas alimenter le prix de l'ouvrage. */
   uniteCompatible?: boolean;
+  /** Ligne écartée : 'llm', 'llm-conteste', 'humain:<nom>', 'reintegre:<nom>'. */
+  motifHorsPerimetre?: string | null;
 }
 
 /** Groupe de la vue « par ouvrage » : un ouvrage et ses lignes en attente. */
@@ -438,9 +461,25 @@ export interface FusionProposee {
   source: Ouvrage & { nbLignes: number };
   cible: Ouvrage & { nbLignes: number };
   score: number | null;
-  methode: "trigramme" | "llm";
+  methode: "trigramme" | "embedding" | "llm";
   avisLlm: "meme" | "distinct" | "incertain" | null;
   motif: string | null;
+}
+
+/** Champs modifiables d'une pièce. undefined = inchangé, null = effacé. */
+export interface ChampsDocument {
+  dateDocument?: ISODate | null;
+  typeDocument?: TypeDocument;
+  estTs?: boolean;
+  numero?: string | null;
+  clientId?: UUID | null;
+  /** Prioritaire sur clientId : crée le client (et son alias) s'il est inconnu. */
+  clientNom?: string;
+  chantierObjet?: string | null;
+  chantierCodePostal?: string | null;
+  chantierCommune?: string | null;
+  /** Posée par un humain : la zone devient fiable. */
+  zoneCode?: CodeZone | null;
 }
 
 export interface DocumentARevoir {
@@ -449,6 +488,12 @@ export interface DocumentARevoir {
   fichierNom: string;
   date: ISODate | null;
   client: string | null;
+  clientId: UUID | null;
+  typeDocument: TypeDocument;
+  chantierCodePostal: string | null;
+  chantierCommune: string | null;
+  zone: CodeZone | null;
+  zoneFiable: boolean;
   chantierObjet: string | null;
   estTs: boolean;
   statut: StatutDocument;
@@ -478,6 +523,11 @@ export interface ProgressionCalage {
   lignesSansOuvrage: number;
   doublonsProposes: number;
   valideesAuto: number;
+  /** Lignes écartées par l'IA non encore relues. */
+  horsPerimetre: number;
+  lotsProposes: number;
+  /** Pièces sans date, zone ou client. */
+  piecesIncompletes: number;
 }
 
 /** Vue d'ensemble de la base : rangée de KPI et bandeau d'en-tête. */

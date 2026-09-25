@@ -1,19 +1,17 @@
 // =====================================================================
-// En-tête commun (design system Vision) : marque, bascule prix,
-// utilisateur, onglets de navigation, puis bandeau d'état de la base.
+// En-tête commun (design system Vision) : marque, utilisateur, onglets
+// de navigation, puis bandeau d'état de la base.
 // =====================================================================
 
-import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { lireSession } from "@/lib/session-serveur";
 import { referentiel } from "@/lib/queries";
 import type { SyntheseBase } from "@/lib/types";
-import { BasculeIndexe } from "./BasculeIndexe";
 import { MenuUtilisateur } from "./MenuUtilisateur";
 import { entier, ilYa } from "./Vision";
 
-type Onglet = "prix" | "historique" | "chat" | "calage" | "import";
+type Onglet = "prix" | "frais" | "historique" | "chat" | "calage" | "import";
 
 export async function EnTete({
   actif,
@@ -23,7 +21,7 @@ export async function EnTete({
   actif: Onglet;
   /** déjà chargée par la page : évite une seconde requête */
   synthese?: SyntheseBase;
-  /** affiche la bascule prix actualisés / bruts */
+  /** conservé pour compatibilité : la bascule prix actualisés a été retirée */
   bascule?: boolean;
 }) {
   const session = await lireSession();
@@ -66,15 +64,11 @@ export async function EnTete({
               </div>
             </Link>
             <div className="vx-spacer" />
-            {bascule && (
-              <Suspense>
-                <BasculeIndexe />
-              </Suspense>
-            )}
             <MenuUtilisateur libelle={session?.libelle} estAdmin={session?.estAdmin ?? false} />
           </div>
           <nav className="vx-tabs" aria-label="Navigation principale">
             {onglet("/", "Tarifs ouvrages", "prix")}
+            {onglet("/frais", "Frais de chantier", "frais")}
             {onglet("/historique", "Historique des chantiers", "historique")}
             {onglet("/chat", "Assistant IA", "chat")}
             {session?.estAdmin && onglet("/calage", "Calage", "calage")}

@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const lignes: string[] = [
     [
       "Lot", "Code", "Ouvrage", "Unité",
-      indexe ? "Prix de référence (actualisé)" : "Prix de référence (brut)",
+      "Prix de référence (HT)",
       "Prix bas", "Prix haut", "Moyenne", "Min", "Max", "n", "Chantiers",
       "Prix TS", "n TS", "Écart TS (%)", "Fiabilité", "Dernier devis",
     ]

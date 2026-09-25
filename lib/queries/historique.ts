@@ -54,7 +54,7 @@ function versDocumentResume(r: Record<string, unknown>): DocumentResume {
   return {
     id: r.id as UUID,
     numero: (r.numero_document as string) ?? null,
-    date: r.date_document as string,
+    date: (r.date_document as string) ?? null,
     type: r.type_document as TypeDocument,
     estTs: Boolean(r.est_ts),
     client: r.client_id
@@ -104,7 +104,7 @@ export async function listerDocuments(
           ${f.lotId ? sql`and o.lot_id = ${f.lotId}` : sql``}
         )`
       : sql``}
-    order by d.date_document desc, d.numero_document desc
+    order by d.date_document desc nulls last, d.numero_document desc
     limit ${parPage} offset ${(page - 1) * parPage}
   `;
   return {
@@ -123,7 +123,7 @@ export async function obtenirDocument(
     select d.id, d.numero_document, d.date_document::text as date_document,
            d.type_document, d.est_ts, d.client_id,
            c.nom_normalise as client_nom, d.chantier_objet,
-           d.chantier_commune, z.code as zone_code, d.zone_fiable,
+           d.chantier_commune, d.chantier_code_postal, z.code as zone_code, d.zone_fiable,
            d.total_ht, d.ecart_total, d.statut, d.storage_path,
            (select count(*)::int from lignes_source l
              where l.document_id = d.id and l.est_titre = false) as nb_lignes
@@ -165,6 +165,7 @@ export async function obtenirDocument(
   return {
     ...versDocumentResume(d),
     lignes: lignes.map(versLigne),
+    chantierCodePostal: (d.chantier_code_postal as string) ?? null,
     ecartTotal: d.ecart_total === null ? null : Number(d.ecart_total),
   };
 }
@@ -212,7 +213,7 @@ export async function listerLignes(
       : sql``}
     ${f.ouvrageId ? sql`and o.id = ${f.ouvrageId}` : sql``}
     ${f.lotId ? sql`and o.lot_id = ${f.lotId}` : sql``}
-    order by d.date_document desc, d.numero_document desc, l.ordre
+    order by d.date_document desc nulls last, d.numero_document desc, l.ordre
     limit ${parPage} offset ${(page - 1) * parPage}
   `;
   return {

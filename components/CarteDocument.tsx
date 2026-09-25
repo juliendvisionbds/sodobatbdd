@@ -14,23 +14,30 @@ import {
   type DocumentResume,
 } from "@/lib/types";
 
+import { BoutonModifierDocument } from "./FormulaireDocument";
+
 const LIBELLES_TYPE_DOC: Record<string, string> = {
   devis: "DEV",
   facture: "FAC",
   situation: "SIT",
   avenant: "AVE",
+  indetermine: "PIÈCE",
 };
 
 export function CarteDocument({
   doc,
   detail,
   hrefBascule,
+  peutModifier = false,
 }: {
   doc: DocumentResume;
   detail: DocumentDetail | null;
   hrefBascule: string;
+  /** administrateur : bouton « Modifier la pièce » dans le détail */
+  peutModifier?: boolean;
 }) {
   const ouvert = detail !== null;
+  const incomplete = !doc.date || !doc.zone || !doc.client;
 
   return (
     <article className="border-b border-hairline">
@@ -49,7 +56,12 @@ export function CarteDocument({
           {doc.numero ?? LIBELLES_TYPE_DOC[doc.type]}
         </span>
         {doc.estTs && <span className="badge b-amber">TS</span>}
-        <span className="mono text-[13px] text-sub">{fmtDate(doc.date)}</span>
+        <span className="mono text-[13px] text-sub">{doc.date ? fmtDate(doc.date) : "sans date"}</span>
+        {incomplete && (
+          <span className="badge b-amber" title="Date, zone ou client manquant : à compléter dans le calage">
+            à compléter
+          </span>
+        )}
         <span className="text-[14px] font-semibold">
           {doc.client?.nom ?? "Client inconnu"}
         </span>
@@ -129,6 +141,18 @@ export function CarteDocument({
               </tr>
             </tfoot>
           </table>
+          {peutModifier && (
+            <div className="mt-3">
+              <BoutonModifierDocument
+                doc={{
+                  id: doc.id, date: doc.date, typeDocument: doc.type, estTs: doc.estTs, numero: doc.numero,
+                  client: doc.client?.nom ?? null, chantierObjet: doc.chantierObjet,
+                  chantierCodePostal: detail?.chantierCodePostal ?? null,
+                  chantierCommune: doc.chantierCommune, zone: doc.zone,
+                }}
+              />
+            </div>
+          )}
           {doc.lienPdf && (
             <p className="mt-3 text-right">
               <a

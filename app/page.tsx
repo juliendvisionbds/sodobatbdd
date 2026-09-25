@@ -54,7 +54,7 @@ export default async function PageTableau({
 
   return (
     <div className="min-h-screen">
-      <EnTete actif="prix" synthese={synthese} bascule />
+      <EnTete actif="prix" synthese={synthese} />
 
       <main className="vx-wrap pb-16 pt-[30px]">
         <TitrePage
@@ -94,8 +94,7 @@ export default async function PageTableau({
           meta={
             <span aria-live="polite">
               {/* compteur permanent, jamais masqué pendant le chargement */}
-              {entier(page.total)} ouvrage{page.total > 1 ? "s" : ""} ·{" "}
-              {indexe ? "prix actualisés" : "prix bruts"}
+              {entier(page.total)} ouvrage{page.total > 1 ? "s" : ""} · € HT
             </span>
           }
           actions={

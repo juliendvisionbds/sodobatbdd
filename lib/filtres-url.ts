@@ -58,7 +58,8 @@ export function lireFiltres(params: ParamsRecherche): FiltresPrix {
     fiabiliteMinimum: (["haute", "moyenne", "faible"].includes(fiab ?? "")
       ? fiab
       : undefined) as Fiabilite | undefined,
-    indexe: premier(params.prix) !== "bruts",
+    // prix actualisés retirés de l'interface (index BT01 non chargé)
+    indexe: false,
     inclureSansPrix: premier(params.sansprix) === "1",
   };
 }
@@ -101,7 +102,7 @@ export function lirePage(params: ParamsRecherche): number {
 }
 
 const TYPES_DOCUMENT: TypeDocument[] = [
-  "devis", "facture", "situation", "avenant",
+  "devis", "facture", "situation", "avenant", "indetermine",
 ];
 
 export function lireFiltresHistorique(

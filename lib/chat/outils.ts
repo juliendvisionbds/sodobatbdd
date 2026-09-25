@@ -35,6 +35,17 @@ const UNITES = ["m2", "ml", "m3", "u", "kg", "h", "j", "ens", "forfait"];
 
 export const DEFINITIONS_OUTILS: Anthropic.Tool[] = [
   {
+    name: "frais_chantier",
+    description:
+      "Frais de chantier (installation, base vie, études, amenée-repli, compte prorata…) : part médiane du montant du chantier en %, montant médian, n, taille des chantiers observés. Sans argument : tous les postes ; avec `recherche` : filtre sur le libellé.",
+    input_schema: {
+      type: "object",
+      properties: {
+        recherche: { type: "string", description: "mot du libellé (ex. installation, étude)" },
+      },
+    },
+  },
+  {
     name: "chercher_ouvrage",
     description:
       "Recherche floue d'ouvrages canoniques dans le référentiel (par libellé ou code). Retourne pour chacun le n d'occurrences et la médiane actualisée globale.",
@@ -64,10 +75,6 @@ export const DEFINITIONS_OUTILS: Anthropic.Tool[] = [
         zone: { type: "string", enum: ZONES },
         depuis: { type: "string", description: "AAAA-MM-JJ" },
         jusqu_a: { type: "string", description: "AAAA-MM-JJ" },
-        indexe: {
-          type: "boolean",
-          description: "true (défaut) = prix actualisés à aujourd'hui, false = prix bruts",
-        },
       },
       required: ["ouvrage_id"],
     },
@@ -165,7 +172,6 @@ function resumeStats(s: StatsPrix | null, indexe: boolean) {
       ? `${s.premiereOccurrence} → ${s.derniereOccurrence}`
       : "pièces non datées",
     zone_toujours_fiable: s.zoneToujoursFiable,
-    prix: indexe ? "actualisés à aujourd'hui" : "bruts (non actualisés)",
   };
 }
 
@@ -187,6 +193,31 @@ export async function executerOutil(
   sources: SourceChat[],
 ): Promise<unknown> {
   switch (nom) {
+    case "frais_chantier": {
+      const terme = String(args.recherche ?? "").trim().toLowerCase();
+      const tous = await ouvrages.listerFrais();
+      const retenus = tous.filter(
+        (f) => (f.normaux || f.ts) && (!terme || f.ouvrage.libelleDevis.toLowerCase().includes(terme)),
+      );
+      return {
+        lecture: "part_mediane_chantier_pct = médiane de (montant du poste / total HT de la pièce) sur les devis validés",
+        postes: retenus.map((f) => {
+          const s = f.normaux ?? f.ts!;
+          return {
+            id: f.ouvrage.id,
+            libelle: f.ouvrage.libelleDevis,
+            lot: f.ouvrage.lotLibelle,
+            part_mediane_chantier_pct: s.pctMedianChantier,
+            montant_median: s.montantMedian,
+            n: s.n,
+            chantiers_de: s.chantierMin,
+            chantiers_a: s.chantierMax,
+            ts: f.normaux ? false : true,
+          };
+        }),
+      };
+    }
+
     case "chercher_ouvrage": {
       const trouves = await referentiel.chercherOuvrages(
         String(args.requete ?? ""),
@@ -210,7 +241,7 @@ export async function executerOutil(
           unite: o.unite,
           est_forfaitaire: o.estForfaitaire,
           n: s?.n ?? 0,
-          mediane_actualisee: s ? valeurs(s, true).mediane : null,
+          mediane: s ? valeurs(s, false).mediane : null,
         });
       }
       return { ouvrages: resultats };
@@ -218,7 +249,7 @@ export async function executerOutil(
 
     case "stats_ouvrage": {
       const id = String(args.ouvrage_id ?? "");
-      const indexe = args.indexe !== false;
+      const indexe = false;
       const typeTravaux: TypeTravaux =
         args.est_ts === true ? "ts" : args.est_ts === false ? "normaux" : "tous";
       const filtres: FiltresPrix = {

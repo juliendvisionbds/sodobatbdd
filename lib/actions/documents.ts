@@ -6,7 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { exigerAdmin } from "../session-serveur";
 import { referentiel } from "../queries";
-import type { UUID } from "../types";
+import type { ChampsDocument, UUID } from "../types";
 
 function revalider() {
   revalidatePath("/calage");
@@ -41,7 +41,16 @@ export async function remettreARevoirAction(id: UUID): Promise<void> {
 }
 
 export async function basculerTsAction(id: UUID, estTs: boolean): Promise<void> {
-  await exigerAdmin();
-  await referentiel.modifierDocument(id, { estTs });
+  const session = await exigerAdmin();
+  await referentiel.modifierDocument(id, { estTs }, { acteur: session.libelle });
+  revalider();
+}
+
+export async function modifierDocumentAction(
+  id: UUID,
+  champs: ChampsDocument,
+): Promise<void> {
+  const session = await exigerAdmin();
+  await referentiel.modifierDocument(id, champs, { acteur: session.libelle });
   revalider();
 }

@@ -17,7 +17,9 @@
     "db:acces": "tsx scripts/creer-acces.ts",
     "test": "vitest run",
     "auto-valider": "tsx scripts/auto-valider.ts",
-    "proposer-fusions": "tsx scripts/proposer-fusions.ts"
+    "proposer-fusions": "tsx scripts/proposer-fusions.ts",
+    "db:dates": "tsx scripts/recuperer-dates.ts",
+    "proposer-lots": "tsx scripts/proposer-lots.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

@@ -16,6 +16,7 @@ import { EnTete } from "@/components/EnTete";
 import { BarreRecherche } from "@/components/BarreRecherche";
 import { FiltresHistorique } from "@/components/FiltresHistorique";
 import { CarteDocument } from "@/components/CarteDocument";
+import { lireSession } from "@/lib/session-serveur";
 import { TableLignesHistorique } from "@/components/TableLignesHistorique";
 import { Pagination } from "@/components/Pagination";
 import {
@@ -55,12 +56,13 @@ export default async function PageHistorique({
   const page = lirePage(params);
   const mode = params.mode === "lignes" ? "lignes" : "documents";
   const docOuvert = typeof params.doc === "string" ? params.doc : null;
-  const indexe = params.prix !== "bruts";
-  const synthese = await referentiel.synthese();
+  const indexe = false;
+  const [synthese, session] = await Promise.all([referentiel.synthese(), lireSession()]);
+  const peutModifier = session?.estAdmin ?? false;
 
   return (
     <div className="min-h-screen">
-      <EnTete actif="historique" synthese={synthese} bascule />
+      <EnTete actif="historique" synthese={synthese} />
 
       <main className="vx-wrap pb-16 pt-[30px]">
         <TitrePage
@@ -131,6 +133,7 @@ export default async function PageHistorique({
                   filtres={filtres}
                   page={page}
                   docOuvert={docOuvert}
+                  peutModifier={peutModifier}
                   params={params}
                 />
               ) : (
@@ -145,6 +148,7 @@ export default async function PageHistorique({
 }
 
 async function ModeDocuments({
+  peutModifier,
   filtres,
   page,
   docOuvert,
@@ -153,6 +157,7 @@ async function ModeDocuments({
   filtres: ReturnType<typeof lireFiltresHistorique>;
   page: number;
   docOuvert: string | null;
+  peutModifier: boolean;
   params: ParamsRecherche;
 }) {
   const [docs, detail] = await Promise.all([
@@ -179,6 +184,7 @@ async function ModeDocuments({
             key={d.id}
             doc={d}
             detail={d.id === docOuvert ? detail : null}
+            peutModifier={peutModifier}
             hrefBascule={hrefAvec(params, {
               doc: d.id === docOuvert ? null : d.id,
             })}

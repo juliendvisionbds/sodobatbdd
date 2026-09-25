@@ -5,6 +5,7 @@
 // =====================================================================
 
 import { sql } from "@/lib/db";
+import { dateDepuisNomFichier, parserDateFrancaise } from "./dates";
 import {
   controlerDocument,
   type DocumentExtrait,
@@ -50,7 +51,18 @@ export type ResultatInsertion = {
 async function rapprocherClient(
   extrait: DocumentExtrait,
 ): Promise<{ clientId: string | null; cree: boolean }> {
-  const nom = extrait.client_nom?.trim();
+  return trouverOuCreerClient(extrait.client_nom, {
+    codePostal: extrait.client_code_postal,
+    commune: extrait.client_commune,
+  });
+}
+
+/** Alias exact → trigramme → création. Partagé avec l'édition manuelle. */
+export async function trouverOuCreerClient(
+  nomBrut: string | null | undefined,
+  o: { codePostal?: string | null; commune?: string | null } = {},
+): Promise<{ clientId: string | null; cree: boolean }> {
+  const nom = nomBrut?.trim();
   if (!nom) return { clientId: null, cree: false };
 
   const [parAlias] = await sql`
@@ -74,8 +86,7 @@ async function rapprocherClient(
 
   const [cree] = await sql`insert into clients
     (nom_normalise, code_postal, commune, adresse_vaut_chantier)
-    values (${nom}, ${extrait.client_code_postal},
-            ${extrait.client_commune}, false)
+    values (${nom}, ${o.codePostal ?? null}, ${o.commune ?? null}, false)
     returning id`;
   await sql`insert into clients_alias (alias, client_id)
     values (${nom}, ${cree.id}) on conflict do nothing`;
@@ -86,8 +97,8 @@ async function rapprocherClient(
 // Zone : CP chantier explicite -> fiable ; sinon CP client -> déduite
 // ---------------------------------------------------------------------
 
-async function resoudreZone(
-  codePostal: string | null,
+export async function resoudreZone(
+  codePostal: string | null | undefined,
 ): Promise<string | null> {
   if (!codePostal) return null;
   const cp = codePostal.trim();
@@ -169,10 +180,14 @@ export async function insererDocument(params: {
       ? extrait.lignes.reduce((s, l) => s + l.confiance, 0) / extrait.lignes.length
       : null;
 
-  const dateValide =
+  const dateIso =
     extrait.date_document && /^\d{4}-\d{2}-\d{2}$/.test(extrait.date_document)
       ? extrait.date_document
       : null;
+  const dateRaw = dateIso ? null : parserDateFrancaise(extrait.date_document);
+  const dateFichier = dateIso || dateRaw ? null : dateDepuisNomFichier(fichierNom);
+  const dateValide = dateIso ?? dateRaw ?? dateFichier;
+  const dateSource = dateIso ? "document" : dateRaw ? "raw" : dateFichier ? "fichier" : null;
 
   const [doc] = await sql`insert into documents
     (fichier_nom, fichier_hash, storage_path, nb_pages,
@@ -181,7 +196,7 @@ export async function insererDocument(params: {
      chantier_code_postal, chantier_commune, zone_id, zone_fiable,
      total_ht, tva_taux, total_ttc,
      extraction_modele, extraction_version, extraction_confiance, raw_json,
-     controle_total, ecart_total, statut)
+     controle_total, ecart_total, statut, date_source)
     values
     (${fichierNom}, ${fichierHash}, ${storagePath}, ${nbPages},
      ${extrait.type_document}, ${extrait.est_ts},
@@ -192,7 +207,8 @@ export async function insererDocument(params: {
      ${extrait.total_ht}, ${extrait.tva_taux}, ${extrait.total_ttc},
      ${MODELE_EXTRACTION}, ${VERSION_EXTRACTION}, ${confianceMoyenne},
      ${sql.json(brut as never)},
-     ${controle.controleTotal}, ${controle.ecartTotal}, ${controle.statut})
+     ${controle.controleTotal}, ${controle.ecartTotal}, ${controle.statut},
+     ${dateSource})
     returning id`;
 
   for (const { ligne, statut, ecart } of controle.lignes) {

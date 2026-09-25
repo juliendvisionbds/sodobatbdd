@@ -152,6 +152,11 @@ export function CalageFile({
               {l.client && <> · {l.client}</>}
             </span>
             <BadgeStatutDocument statut={courant.statutDocument} controleLigne={courant.controleLigne} />
+            {!courant.uniteCompatible && (
+              <span className="badge b-amber" title="L'unité de la ligne ne peut pas alimenter le prix de l'ouvrage proposé : changer la cible (M) ou passer">
+                unité ≠ ouvrage
+              </span>
+            )}
             {l.lienPdf && (
               <a href={l.lienPdf} target="_blank" rel="noreferrer" className="font-semibold text-navy underline-offset-2 hover:underline">
                 Pièce d&apos;origine ↗

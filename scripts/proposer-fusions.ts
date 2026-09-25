@@ -1,6 +1,11 @@
 // =====================================================================
 // Propositions de fusion d'ouvrages (quasi-doublons du référentiel) :
-//   npm run proposer-fusions -- [--seuil 0.6] [--sans-llm] [--dry-run]
+//   npm run proposer-fusions -- [--seuil 0.6] [--embeddings] [--seuil-embedding 0.92]
+//                               [--sans-llm] [--dry-run]
+//
+// --embeddings : calcule les embeddings manquants des ouvrages (OpenAI),
+// puis ajoute les paires proches par sens (cosinus ≥ seuil-embedding).
+// Ignoré sur une base sans pgvector (dev local).
 //
 // 1. Paires d'ouvrages actifs proches par trigramme (même unité, même
 //    nature) → table fusions_proposees.
@@ -68,7 +73,29 @@ async function main() {
   }
 
   const nouvelles = await referentiel.genererPropositionsFusion({ seuil });
-  console.log(`${nouvelles} nouvelle(s) proposition(s) au seuil ${seuil}`);
+  console.log(`${nouvelles} nouvelle(s) proposition(s) par trigramme au seuil ${seuil}`);
+
+  if (args.includes("--embeddings")) {
+    const idxE = args.indexOf("--seuil-embedding");
+    const seuilE = idxE >= 0 ? parseFloat(args[idxE + 1]) : 0.92;
+    if (!(await referentiel.pgvectorDisponible())) {
+      console.log("pgvector absent : étape embeddings ignorée.");
+    } else {
+      const { calculerEmbeddings, texteEmbeddingOuvrage } = await import("../lib/extraction/embeddings");
+      let total = 0;
+      for (;;) {
+        const lot = await referentiel.ouvragesSansEmbedding(100);
+        if (lot.length === 0) break;
+        const vecteurs = await calculerEmbeddings(lot.map(texteEmbeddingOuvrage));
+        await referentiel.enregistrerEmbeddings(lot.map((o, i) => ({ id: o.id, embedding: vecteurs[i] })));
+        total += lot.length;
+        process.stdout.write(`\r  embeddings calculés : ${total}`);
+      }
+      if (total > 0) console.log("");
+      const parSens = await referentiel.genererPropositionsFusionEmbedding({ seuil: seuilE });
+      console.log(`${parSens} nouvelle(s) proposition(s) par sens au seuil ${seuilE}`);
+    }
+  }
 
   if (!sansLlm) {
     const { appelerTexte, extraireJson } = await import("../lib/extraction/appel-modele");

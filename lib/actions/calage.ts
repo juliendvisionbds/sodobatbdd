@@ -18,8 +18,8 @@ export async function validerRattachementAction(
   id: UUID,
   ouvrageId?: UUID,
 ): Promise<void> {
-  await exigerAdmin();
-  await referentiel.validerRattachement(id, ouvrageId);
+  const session = await exigerAdmin();
+  await referentiel.validerRattachement(id, ouvrageId, { acteur: session.libelle });
   revalider();
 }
 
@@ -35,12 +35,13 @@ export async function creerOuvrageDepuisLigneAction(
   },
   o: { aussiIdentiques?: boolean } = {},
 ): Promise<UUID[]> {
-  await exigerAdmin();
+  const session = await exigerAdmin();
   const supplementaires = o.aussiIdentiques
     ? (await referentiel.lignesIdentiquesSansOuvrage(ligneId)).filter((id) => id !== ligneId)
     : [];
   const r = await referentiel.creerOuvrageDepuisLigne(ligneId, champs, {
     lignesSupplementaires: supplementaires,
+    acteur: session.libelle,
   });
   revalider();
   return r.rattachementIds;
@@ -58,8 +59,8 @@ export async function modifierOuvrageAction(
   id: UUID,
   champs: Partial<Ouvrage>,
 ): Promise<void> {
-  await exigerAdmin();
-  await referentiel.modifierOuvrage(id, champs);
+  const session = await exigerAdmin();
+  await referentiel.modifierOuvrage(id, champs, { acteur: session.libelle });
   revalider();
 }
 
@@ -67,11 +68,11 @@ export async function fusionnerOuvragesAction(
   sourceId: UUID,
   cibleId: UUID,
 ): Promise<void> {
-  await exigerAdmin();
+  const session = await exigerAdmin();
   if (sourceId === cibleId) {
     throw new Error("Impossible de fusionner un ouvrage avec lui-même.");
   }
-  await referentiel.fusionnerOuvrages(sourceId, cibleId);
+  await referentiel.fusionnerOuvrages(sourceId, cibleId, { acteur: session.libelle });
   revalider();
 }
 
@@ -80,8 +81,8 @@ export async function fusionnerOuvragesAction(
 // ---------------------------------------------------------------------
 
 export async function validerRattachementsAction(ids: UUID[]): Promise<UUID[]> {
-  await exigerAdmin();
-  const valides = await referentiel.validerRattachements(ids);
+  const session = await exigerAdmin();
+  const valides = await referentiel.validerRattachements(ids, { acteur: session.libelle });
   revalider();
   return valides;
 }
@@ -90,15 +91,15 @@ export async function validerOuvrageAction(
   ouvrageId: UUID,
   filtres?: FiltresCalage,
 ): Promise<{ ids: UUID[]; ignoresUnite: number }> {
-  await exigerAdmin();
-  const r = await referentiel.validerParOuvrage(ouvrageId, { filtres });
+  const session = await exigerAdmin();
+  const r = await referentiel.validerParOuvrage(ouvrageId, { filtres, acteur: session.libelle });
   revalider();
   return { ids: r.ids, ignoresUnite: r.ignoresUnite };
 }
 
 export async function devaliderRattachementsAction(ids: UUID[]): Promise<number> {
-  await exigerAdmin();
-  const n = await referentiel.devaliderRattachements(ids);
+  const session = await exigerAdmin();
+  const n = await referentiel.devaliderRattachements(ids, { acteur: session.libelle });
   revalider();
   return n;
 }
@@ -107,8 +108,8 @@ export async function annulerDerniereActionAction(): Promise<{
   action: string;
   n: number;
 } | null> {
-  await exigerAdmin();
-  const r = await referentiel.annulerDerniereAction();
+  const session = await exigerAdmin();
+  const r = await referentiel.annulerDerniereAction({ acteur: session.libelle });
   revalider();
   return r;
 }
@@ -119,13 +120,13 @@ export async function rattacherLignesAction(
   ouvrageId: UUID,
   o: { aussiIdentiques?: boolean } = {},
 ): Promise<UUID[]> {
-  await exigerAdmin();
+  const session = await exigerAdmin();
   let ids = ligneIds;
   if (o.aussiIdentiques && ligneIds.length === 1) {
     const identiques = await referentiel.lignesIdentiquesSansOuvrage(ligneIds[0]);
     ids = [...new Set([...ligneIds, ...identiques])];
   }
-  const r = await referentiel.rattacherLignes(ids, ouvrageId);
+  const r = await referentiel.rattacherLignes(ids, ouvrageId, { acteur: session.libelle });
   revalider();
   return r;
 }
@@ -138,13 +139,31 @@ export async function fusionnerProposeeAction(
   id: UUID,
   inverser = false,
 ): Promise<void> {
-  await exigerAdmin();
-  await referentiel.accepterFusion(id, { inverser });
+  const session = await exigerAdmin();
+  await referentiel.accepterFusion(id, { inverser, acteur: session.libelle });
   revalider();
 }
 
 export async function ignorerFusionAction(id: UUID): Promise<void> {
-  await exigerAdmin();
-  await referentiel.refuserFusion(id);
+  const session = await exigerAdmin();
+  await referentiel.refuserFusion(id, { acteur: session.libelle });
   revalider();
+}
+
+// ---------------------------------------------------------------------
+// Hors périmètre
+// ---------------------------------------------------------------------
+
+export async function reintegrerHorsPerimetreAction(ligneIds: UUID[]): Promise<number> {
+  const session = await exigerAdmin();
+  const n = await referentiel.reintegrerHorsPerimetre(ligneIds, { acteur: session.libelle });
+  revalider();
+  return n;
+}
+
+export async function confirmerHorsPerimetreAction(ligneIds: UUID[]): Promise<number> {
+  const session = await exigerAdmin();
+  const n = await referentiel.confirmerHorsPerimetre(ligneIds, { acteur: session.libelle });
+  revalider();
+  return n;
 }

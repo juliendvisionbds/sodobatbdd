@@ -15,6 +15,8 @@ import { CalageDocuments } from "@/components/CalageDocuments";
 import { CalageDoublons } from "@/components/CalageDoublons";
 import { CalageSansOuvrage } from "@/components/CalageSansOuvrage";
 import { CalageReferentiel } from "@/components/CalageReferentiel";
+import { CalageHorsPerimetre } from "@/components/CalageHorsPerimetre";
+import { CalageLots } from "@/components/CalageLots";
 import { Kpi, RangeeKpi, TitrePage, entier } from "@/components/Vision";
 import {
   lireFiltresCalage,
@@ -25,7 +27,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const ONGLETS = ["ouvrages", "file", "documents", "doublons", "sans-ouvrage", "referentiel"] as const;
+const ONGLETS = [
+  "ouvrages", "file", "documents", "doublons", "sans-ouvrage", "hors-perimetre", "lots", "referentiel",
+] as const;
 type Onglet = (typeof ONGLETS)[number];
 
 export default async function PageCalage({
@@ -52,6 +56,7 @@ export default async function PageCalage({
   const lien = (cle: Onglet, libelle: string, badge?: number, ton = "b-red") => {
     const q = new URLSearchParams();
     if (cle !== "ouvrages") q.set("onglet", cle);
+    if (cle === "documents" && params.incomplets === "1") q.set("incomplets", "1");
     for (const k of ["lot", "methode", "doc", "q"] as const) {
       const v = typeof params[k] === "string" ? (params[k] as string) : "";
       if (v && ["ouvrages", "file", "sans-ouvrage"].includes(cle)) q.set(k, v);
@@ -108,14 +113,14 @@ export default async function PageCalage({
                 sous={`sur ${entier(prog.lignesTotal)} lignes chiffrées · ${entier(prog.rattachementsEnAttente)} en attente`}
               />
               <Kpi
-                libelle="Documents à revoir"
-                valeur={entier(prog.documentsARevoir)}
+                libelle="Pièces à compléter"
+                valeur={entier(prog.piecesIncompletes)}
                 sous={
-                  prog.documentsARevoir > 0
-                    ? "écart de total : lignes cohérentes déjà comptées"
-                    : "aucun écart en attente"
+                  prog.piecesIncompletes > 0
+                    ? `sans date, zone ou client · ${entier(prog.documentsARevoir)} avec écart de total`
+                    : `${entier(prog.documentsARevoir)} avec écart de total`
                 }
-                ton={prog.documentsARevoir > 0 ? "neg" : "pos"}
+                ton={prog.piecesIncompletes > 0 ? "neg" : "pos"}
               />
               <Kpi
                 libelle="Validées automatiquement"
@@ -132,6 +137,8 @@ export default async function PageCalage({
           {lien("documents", "Documents à revoir", prog.documentsARevoir)}
           {lien("doublons", "Doublons", prog.doublonsProposes, "b-amber")}
           {lien("sans-ouvrage", "Sans ouvrage", prog.lignesSansOuvrage, "b-amber")}
+          {lien("hors-perimetre", "Hors périmètre", prog.horsPerimetre, "b-neutre")}
+          {lien("lots", "Lots", prog.lotsProposes, "b-amber")}
           {lien("referentiel", "Référentiel")}
         </nav>
 
@@ -149,7 +156,9 @@ export default async function PageCalage({
         <Suspense fallback={<p className="vx-panel py-16 text-center text-sub">Chargement…</p>}>
           {onglet === "ouvrages" && <OngletOuvrages filtres={filtres} page={page} />}
           {onglet === "file" && <OngletFile lots={lots} filtres={filtres} />}
-          {onglet === "documents" && <OngletDocuments />}
+          {onglet === "documents" && <OngletDocuments incomplets={params.incomplets === "1"} />}
+          {onglet === "hors-perimetre" && <OngletHorsPerimetre page={page} />}
+          {onglet === "lots" && <OngletLots />}
           {onglet === "doublons" && <OngletDoublons />}
           {onglet === "sans-ouvrage" && <OngletSansOuvrage filtres={filtres} page={page} lots={lots} />}
           {onglet === "referentiel" && <CalageReferentiel lots={lots} />}
@@ -172,9 +181,23 @@ async function OngletFile({ lots, filtres }: { lots: Lots; filtres: Filtres }) {
   return <CalageFile lot={page.lignes} lots={lots} total={page.total} />;
 }
 
-async function OngletDocuments() {
-  const docs = await referentiel.documentsARevoir();
-  return <CalageDocuments docs={docs} />;
+async function OngletDocuments({ incomplets }: { incomplets: boolean }) {
+  const docs = await referentiel.documentsARevoir({ incomplets });
+  return <CalageDocuments docs={docs} incomplets={incomplets} />;
+}
+
+async function OngletHorsPerimetre({ page }: { page: number }) {
+  const lignes = await referentiel.lignesHorsPerimetre(page);
+  return <CalageHorsPerimetre page={lignes} />;
+}
+
+async function OngletLots() {
+  const [arbre, proposes, versExistants] = await Promise.all([
+    referentiel.arbreLots(),
+    referentiel.listerLotsProposes(),
+    referentiel.affectationsProposeesVersLotsExistants(),
+  ]);
+  return <CalageLots lots={arbre} proposes={proposes} versExistants={versExistants} />;
 }
 
 async function OngletDoublons() {

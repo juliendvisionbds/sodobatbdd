@@ -13,8 +13,12 @@
 import type { TransactionSql } from "postgres";
 import { sql } from "../db";
 import type {
+  ChampsDocument,
   CodeUnite,
+  CodeZone,
   ControleLigne,
+  Lot,
+  LotPropose,
   DocumentARevoir,
   FiltresCalage,
   FusionProposee,
@@ -28,9 +32,11 @@ import type {
   RattachementAValider,
   StatutDocument,
   SyntheseBase,
+  TypeDocument,
   UUID,
 } from "../types";
 import { versLigneContexte } from "./ouvrages";
+import { resoudreZone, trouverOuCreerClient } from "../extraction/insertion";
 
 type Tx = TransactionSql<Record<string, never>>;
 
@@ -557,8 +563,10 @@ export async function creerOuvrageDepuisLigne(
 export async function modifierOuvrage(
   id: UUID,
   champs: Partial<Ouvrage>,
+  o: OptionsEcriture = {},
 ): Promise<Ouvrage> {
   await sql`update ouvrages set
+    valide_par = ${o.acteur ?? "calage"}, valide_le = now(),
     libelle_devis = coalesce(${champs.libelleDevis ?? null}, libelle_devis),
     libelle_normalise = coalesce(${champs.libelleNormalise ?? null}, libelle_normalise),
     lot_id = coalesce(${champs.lotId ?? null}, lot_id),
@@ -570,7 +578,7 @@ export async function modifierOuvrage(
     actif = coalesce(${champs.actif ?? null}, actif),
     updated_at = now()
     where id = ${id}`;
-  await sql`select rafraichir_agregats()`;
+  await rafraichir(o);
   return lireOuvrage(id);
 }
 
@@ -846,7 +854,8 @@ export async function rattachementsAValider(
       from ouvrages o
       left join lots l on l.id = o.lot_id
       where o.actif = true and o.id <> ${r.o_id as string}
-      order by score desc
+      order by unite_compatible(${(r.unite_code as string) ?? null}, o.unite_reference) desc,
+               score desc
       limit 3`;
 
     resultats.push({
@@ -1027,11 +1036,14 @@ export async function lignesIdentiquesSansOuvrage(ligneId: UUID): Promise<UUID[]
 // Documents à revoir
 // ---------------------------------------------------------------------
 
-export async function documentsARevoir(): Promise<DocumentARevoir[]> {
+export async function documentsARevoir(
+  o: { incomplets?: boolean } = {},
+): Promise<DocumentARevoir[]> {
   const docs = await sql`
-    select d.id, d.numero_document, d.fichier_nom,
+    select d.id, d.numero_document, d.fichier_nom, d.type_document,
            d.date_document::text as date_document,
-           c.nom_normalise as client_nom, d.chantier_objet, d.est_ts,
+           c.nom_normalise as client_nom, d.client_id, d.chantier_objet, d.est_ts,
+           d.chantier_code_postal, d.chantier_commune, z.code as zone_code, d.zone_fiable,
            d.statut, d.total_ht, d.ecart_total, d.controle_total, d.storage_path,
            (select count(*)::int from lignes_source l
              where l.document_id = d.id and l.est_titre = false) as nb_lignes,
@@ -1039,7 +1051,10 @@ export async function documentsARevoir(): Promise<DocumentARevoir[]> {
              where l.document_id = d.id and l.controle_ligne = 'ecart') as nb_ecart
     from documents d
     left join clients c on c.id = d.client_id
-    where d.statut = 'a_revoir'
+    left join zones z on z.id = d.zone_id
+    where ${o.incomplets
+      ? sql`d.statut <> 'rejete' and (d.date_document is null or d.zone_id is null or d.client_id is null)`
+      : sql`d.statut = 'a_revoir'`}
     order by d.date_document desc nulls last, d.created_at desc`;
   if (docs.length === 0) return [];
 
@@ -1059,6 +1074,12 @@ export async function documentsARevoir(): Promise<DocumentARevoir[]> {
     fichierNom: d.fichier_nom as string,
     date: (d.date_document as string) ?? null,
     client: (d.client_nom as string) ?? null,
+    clientId: (d.client_id as UUID) ?? null,
+    typeDocument: d.type_document as TypeDocument,
+    chantierCodePostal: (d.chantier_code_postal as string) ?? null,
+    chantierCommune: (d.chantier_commune as string) ?? null,
+    zone: (d.zone_code as CodeZone) ?? null,
+    zoneFiable: Boolean(d.zone_fiable),
     chantierObjet: (d.chantier_objet as string) ?? null,
     estTs: Boolean(d.est_ts),
     statut: d.statut as StatutDocument,
@@ -1098,14 +1119,117 @@ export async function changerStatutDocument(
 
 export async function modifierDocument(
   id: UUID,
-  champs: { estTs?: boolean },
+  champs: ChampsDocument,
   o: OptionsEcriture = {},
 ): Promise<void> {
-  await sql`update documents set
-    est_ts = coalesce(${champs.estTs ?? null}, est_ts),
-    updated_at = now()
+  const acteur = o.acteur ?? "calage";
+  const fragments: ReturnType<typeof sql>[] = [];
+  const def = <T,>(v: T | undefined): v is T => v !== undefined;
+
+  if (def(champs.dateDocument)) {
+    fragments.push(sql`date_document = ${champs.dateDocument}`);
+    fragments.push(sql`date_source = ${champs.dateDocument ? "humain" : null}`);
+  }
+  if (def(champs.typeDocument)) fragments.push(sql`type_document = ${champs.typeDocument}`);
+  if (def(champs.estTs)) fragments.push(sql`est_ts = ${champs.estTs}`);
+  if (def(champs.numero)) fragments.push(sql`numero_document = ${champs.numero}`);
+  if (def(champs.chantierObjet)) fragments.push(sql`chantier_objet = ${champs.chantierObjet}`);
+  if (def(champs.chantierCodePostal)) fragments.push(sql`chantier_code_postal = ${champs.chantierCodePostal}`);
+  if (def(champs.chantierCommune)) fragments.push(sql`chantier_commune = ${champs.chantierCommune}`);
+
+  if (champs.clientNom?.trim()) {
+    const { clientId } = await trouverOuCreerClient(champs.clientNom);
+    fragments.push(sql`client_id = ${clientId}`);
+    fragments.push(sql`client_nom_brut = ${champs.clientNom.trim()}`);
+  } else if (def(champs.clientId)) {
+    fragments.push(sql`client_id = ${champs.clientId}`);
+  }
+
+  if (def(champs.zoneCode)) {
+    if (champs.zoneCode) {
+      const [z] = await sql`select id from zones where code = ${champs.zoneCode}`;
+      if (!z) throw new Error("Zone inconnue.");
+      fragments.push(sql`zone_id = ${z.id}`);
+      fragments.push(sql`zone_fiable = true`);
+    } else {
+      fragments.push(sql`zone_id = null`);
+      fragments.push(sql`zone_fiable = false`);
+    }
+  } else if (def(champs.chantierCodePostal) && champs.chantierCodePostal) {
+    const zoneId = await resoudreZone(champs.chantierCodePostal);
+    if (zoneId) {
+      fragments.push(sql`zone_id = ${zoneId}`);
+      fragments.push(sql`zone_fiable = true`);
+    }
+  }
+
+  if (fragments.length === 0) return;
+  const set = fragments.reduce((acc, f) => sql`${acc}, ${f}`);
+  await sql`update documents set ${set},
+    revu_par = ${acteur}, revu_le = now(), updated_at = now()
     where id = ${id}`;
   await rafraichir(o);
+}
+
+// ---------------------------------------------------------------------
+// Hors périmètre : lignes écartées par l'IA, à relire
+// ---------------------------------------------------------------------
+
+export async function lignesHorsPerimetre(
+  page: number,
+  parPage = 50,
+  o: { seulementNonRevues?: boolean; recherche?: string } = {},
+): Promise<Page<LigneCalage>> {
+  const terme = o.recherche?.trim();
+  const lignes = await sql`
+    select ${SELECT_LIGNE_CALAGE},
+           l.motif_hors_perimetre,
+           null::uuid as rattachement_id, null::numeric as score,
+           null::text as methode, null::text as valide_par,
+           false as exclu_agregats, null::text as motif_exclusion,
+           count(*) over ()::int as total_compte
+    from lignes_source l
+    join documents d on d.id = l.document_id
+    left join clients c on c.id = d.client_id
+    left join zones z on z.id = d.zone_id
+    where l.hors_perimetre and d.statut <> 'rejete'
+      ${o.seulementNonRevues === false ? sql`` : sql`and l.motif_hors_perimetre = 'llm'`}
+      ${terme ? sql`and l.designation_recherche like '%' || f_unaccent(lower(${terme})) || '%'` : sql``}
+    order by (l.pu_ht > 0) desc nulls last, l.designation_recherche
+    limit ${parPage} offset ${(page - 1) * parPage}`;
+  return {
+    lignes: lignes.map((r) => ({
+      ...versLigneCalage(r),
+      motifHorsPerimetre: (r.motif_hors_perimetre as string) ?? null,
+    })),
+    total: lignes.length > 0 ? Number(lignes[0].total_compte) : 0,
+    page,
+    parPage,
+    totalApproche: false,
+  };
+}
+
+/** La ligne redevient « sans ouvrage » (elle repassera par le rattachement). */
+export async function reintegrerHorsPerimetre(
+  ligneIds: UUID[],
+  o: OptionsEcriture = {},
+): Promise<number> {
+  if (ligneIds.length === 0) return 0;
+  const r = await sql`update lignes_source
+    set hors_perimetre = false, motif_hors_perimetre = ${"reintegre:" + (o.acteur ?? "calage")}
+    where id = any(${ligneIds}) and hors_perimetre`;
+  return r.count;
+}
+
+export async function confirmerHorsPerimetre(
+  ligneIds: UUID[],
+  o: OptionsEcriture = {},
+): Promise<number> {
+  if (ligneIds.length === 0) return 0;
+  const r = await sql`update lignes_source
+    set motif_hors_perimetre = ${"humain:" + (o.acteur ?? "calage")}
+    where id = any(${ligneIds}) and hors_perimetre`;
+  return r.count;
 }
 
 // ---------------------------------------------------------------------
@@ -1216,7 +1340,7 @@ export async function qualifierFusion(
   motif: string | null,
 ): Promise<void> {
   await sql`update fusions_proposees set
-    avis_llm = ${avis}, motif = coalesce(${motif}, motif), methode = 'llm',
+    avis_llm = ${avis}, motif = coalesce(${motif}, motif),
     statut = case when ${avis} = 'distinct' then 'refusee' else statut end,
     decide_par = case when ${avis} = 'distinct' then 'llm' else decide_par end,
     decide_le = case when ${avis} = 'distinct' then now() else decide_le end
@@ -1250,6 +1374,295 @@ export async function refuserFusion(
   await sql`update fusions_proposees
     set statut = 'refusee', decide_par = ${o.acteur ?? "calage"}, decide_le = now()
     where id = ${id} and statut = 'proposee'`;
+}
+
+// ---------------------------------------------------------------------
+// Embeddings des ouvrages et propositions de fusion « par sens »
+// ---------------------------------------------------------------------
+
+/** pgvector présent et colonne au bon type (faux sur la base locale). */
+export async function pgvectorDisponible(): Promise<boolean> {
+  const [r] = await sql`
+    select exists(select 1 from pg_extension where extname = 'vector') as ext,
+           (select format_type(atttypid, atttypmod) from pg_attribute
+             where attrelid = 'ouvrages'::regclass and attname = 'embedding') as type`;
+  return Boolean(r?.ext) && String(r?.type).startsWith("vector");
+}
+
+export async function ouvragesSansEmbedding(limite = 100): Promise<
+  Array<{ id: UUID; libelleNormalise: string; unite: string | null; lot: string | null }>
+> {
+  const lignes = await sql`
+    select o.id, o.libelle_normalise, o.unite_reference, l.code as lot
+    from ouvrages o left join lots l on l.id = o.lot_id
+    where o.actif and o.embedding is null
+    order by o.created_at
+    limit ${limite}`;
+  return lignes.map((r) => ({
+    id: r.id as UUID,
+    libelleNormalise: r.libelle_normalise as string,
+    unite: (r.unite_reference as string) ?? null,
+    lot: (r.lot as string) ?? null,
+  }));
+}
+
+export async function enregistrerEmbeddings(
+  items: Array<{ id: UUID; embedding: number[] }>,
+): Promise<void> {
+  for (const it of items) {
+    await sql`update ouvrages set embedding = ${JSON.stringify(it.embedding)}::vector
+      where id = ${it.id}`;
+  }
+}
+
+/** Paires d'ouvrages proches par sens (cosinus ≥ seuil), même unité et
+ *  même nature. Cible = le plus rattaché. Renvoie le nombre de nouvelles
+ *  propositions (methode 'embedding'). */
+export async function genererPropositionsFusionEmbedding(
+  o: { seuil?: number } = {},
+): Promise<number> {
+  const seuil = o.seuil ?? 0.92;
+  const inseres = await sql`
+    with n as (
+      select ouvrage_id, count(*) as n from rattachements group by 1
+    ),
+    paires as (
+      select a.id as a_id, b.id as b_id,
+             coalesce(na.n, 0) as na, coalesce(nb.n, 0) as nb,
+             a.created_at as ca, b.created_at as cb,
+             1 - (a.embedding <=> b.embedding) as score,
+             a.lot_id as lot_a, b.lot_id as lot_b
+      from ouvrages a
+      join ouvrages b on a.id < b.id
+      left join n na on na.ouvrage_id = a.id
+      left join n nb on nb.ouvrage_id = b.id
+      where a.actif and b.actif
+        and a.embedding is not null and b.embedding is not null
+        and a.est_forfaitaire = b.est_forfaitaire
+        and a.unite_reference is not distinct from b.unite_reference
+        and 1 - (a.embedding <=> b.embedding) >= ${seuil}
+    )
+    insert into fusions_proposees (source_id, cible_id, score, methode, motif)
+    select case when (na, ca) >= (nb, cb) then b_id else a_id end,
+           case when (na, ca) >= (nb, cb) then a_id else b_id end,
+           round(score::numeric, 3), 'embedding',
+           'proximité de sens ' || round(score::numeric, 2)
+             || case when lot_a is distinct from lot_b then ' · lots différents' else '' end
+    from paires
+    on conflict do nothing
+    returning id`;
+  return inseres.length;
+}
+
+// ---------------------------------------------------------------------
+// Lots : gestion et propositions de l'IA
+// ---------------------------------------------------------------------
+
+function versLot(r: Record<string, unknown>): Lot {
+  return {
+    id: r.id as UUID,
+    code: r.code as string,
+    libelle: r.libelle as string,
+    parentId: (r.parent_id as UUID) ?? null,
+    ordre: Number(r.ordre),
+  };
+}
+
+export async function creerLot(champs: {
+  code: string;
+  libelle: string;
+  parentId?: UUID | null;
+  ordre?: number;
+}): Promise<Lot> {
+  const code = champs.code.trim().toUpperCase();
+  if (!/^[A-Z0-9.]{2,20}$/.test(code)) {
+    throw new Error("Code de lot invalide : lettres, chiffres et points (ex. GO.BA.DAL).");
+  }
+  const [ordreRow] = await sql`select coalesce(max(ordre), 0) + 1 as suivant
+    from lots where parent_id is not distinct from ${champs.parentId ?? null}`;
+  const [r] = await sql`insert into lots (code, libelle, parent_id, ordre)
+    values (${code}, ${champs.libelle.trim()}, ${champs.parentId ?? null},
+            ${champs.ordre ?? Number(ordreRow.suivant)})
+    returning id, code, libelle, parent_id, ordre`;
+  return versLot(r);
+}
+
+export async function renommerLot(
+  id: UUID,
+  champs: { code?: string; libelle?: string },
+): Promise<Lot> {
+  const code = champs.code?.trim().toUpperCase();
+  if (code && !/^[A-Z0-9.]{2,20}$/.test(code)) {
+    throw new Error("Code de lot invalide.");
+  }
+  const [r] = await sql`update lots set
+    code = coalesce(${code ?? null}, code),
+    libelle = coalesce(${champs.libelle?.trim() || null}, libelle)
+    where id = ${id}
+    returning id, code, libelle, parent_id, ordre`;
+  if (!r) throw new Error("Lot introuvable.");
+  return versLot(r);
+}
+
+/** Déplace un lot sous un autre (ou à la racine). Refuse les cycles. */
+export async function deplacerLot(
+  id: UUID,
+  parentId: UUID | null,
+  ordre?: number,
+): Promise<void> {
+  if (parentId) {
+    const descendants = await idsLotAvecDescendants(id);
+    if (descendants.includes(parentId)) {
+      throw new Error("Un lot ne peut pas être déplacé sous l'un de ses sous-lots.");
+    }
+  }
+  await sql`update lots set parent_id = ${parentId},
+    ordre = coalesce(${ordre ?? null}, ordre) where id = ${id}`;
+}
+
+/** Suppression d'un lot vide seulement (aucun ouvrage, aucun sous-lot). */
+export async function supprimerLot(id: UUID): Promise<void> {
+  const [c] = await sql`select
+    (select count(*)::int from ouvrages where lot_id = ${id}) as ouvrages,
+    (select count(*)::int from lots where parent_id = ${id}) as enfants`;
+  if (Number(c.ouvrages) > 0 || Number(c.enfants) > 0) {
+    throw new Error(
+      `Ce lot contient ${c.ouvrages} ouvrage(s) et ${c.enfants} sous-lot(s) : déplacez-les d'abord.`,
+    );
+  }
+  await sql`delete from lots where id = ${id}`;
+}
+
+export async function affecterOuvragesAuLot(
+  ouvrageIds: UUID[],
+  lotId: UUID | null,
+): Promise<number> {
+  if (ouvrageIds.length === 0) return 0;
+  const r = await sql`update ouvrages set lot_id = ${lotId}, updated_at = now()
+    where id = any(${ouvrageIds})`;
+  return r.count;
+}
+
+/** Ouvrages d'un lot (pour l'écran Lots), avec recherche. */
+export async function ouvragesDuLot(
+  lotId: UUID | null,
+  recherche?: string,
+  limite = 200,
+): Promise<Array<Ouvrage & { nbLignes: number }>> {
+  const terme = recherche?.trim();
+  const lignes = await sql`
+    select ${SELECT_OUVRAGE},
+           (select count(*)::int from rattachements r where r.ouvrage_id = o.id) as nb_lignes
+    from ouvrages o left join lots l on l.id = o.lot_id
+    where o.actif
+      and o.lot_id is not distinct from ${lotId}
+      ${terme ? sql`and (f_unaccent(lower(o.libelle_devis)) like '%' || f_unaccent(lower(${terme})) || '%'
+                       or o.code ilike '%' || ${terme} || '%')` : sql``}
+    order by o.libelle_devis
+    limit ${limite}`;
+  return lignes.map((r) => ({ ...versOuvrage(r), nbLignes: Number(r.nb_lignes) }));
+}
+
+/** Remplace la proposition en attente par une nouvelle. */
+export async function enregistrerPropositionLots(
+  lots: Array<{ code: string; libelle: string; parentCode: string | null; ordre: number; motif?: string }>,
+  affectations: Array<{ ouvrageId: UUID; lotCode: string }>,
+): Promise<void> {
+  await sql.begin(async (tx) => {
+    await tx`delete from ouvrages_lots_proposes where statut = 'propose'`;
+    await tx`delete from lots_proposes where statut = 'propose'`;
+    for (const l of lots) {
+      await tx`insert into lots_proposes (code, libelle, parent_code, ordre, motif)
+        values (${l.code}, ${l.libelle}, ${l.parentCode}, ${l.ordre}, ${l.motif ?? null})
+        on conflict (code) do update set
+          libelle = excluded.libelle, parent_code = excluded.parent_code,
+          ordre = excluded.ordre, motif = excluded.motif, statut = 'propose'`;
+    }
+    for (const a of affectations) {
+      await tx`insert into ouvrages_lots_proposes (ouvrage_id, lot_code)
+        values (${a.ouvrageId}, ${a.lotCode})
+        on conflict (ouvrage_id) do update set lot_code = excluded.lot_code, statut = 'propose'`;
+    }
+  });
+}
+
+export async function listerLotsProposes(): Promise<LotPropose[]> {
+  const lignes = await sql`
+    select p.code, p.libelle, p.parent_code, p.ordre, p.statut, p.motif, p.lot_id,
+           (select count(*)::int from ouvrages_lots_proposes a
+             where a.lot_code = p.code and a.statut = 'propose') as nb
+    from lots_proposes p
+    where p.statut <> 'refuse'
+    order by p.parent_code nulls first, p.ordre, p.code`;
+  return lignes.map((r) => ({
+    code: r.code as string,
+    libelle: r.libelle as string,
+    parentCode: (r.parent_code as string) ?? null,
+    ordre: Number(r.ordre),
+    statut: r.statut as LotPropose["statut"],
+    motif: (r.motif as string) ?? null,
+    nbOuvrages: Number(r.nb),
+    lotId: (r.lot_id as UUID) ?? null,
+  }));
+}
+
+/** Affectations proposées vers des lots existants (pas de nouveau lot). */
+export async function affectationsProposeesVersLotsExistants(): Promise<
+  Array<{ lotCode: string; libelle: string; nbOuvrages: number }>
+> {
+  const lignes = await sql`
+    select l.code, l.libelle, count(*)::int as nb
+    from ouvrages_lots_proposes a
+    join lots l on l.code = a.lot_code
+    where a.statut = 'propose'
+    group by l.code, l.libelle order by l.code`;
+  return lignes.map((r) => ({
+    lotCode: r.code as string,
+    libelle: r.libelle as string,
+    nbOuvrages: Number(r.nb),
+  }));
+}
+
+/** Crée le lot proposé (parent = lot existant ou lot proposé déjà accepté). */
+export async function accepterLotPropose(code: string): Promise<UUID> {
+  const [p] = await sql`select * from lots_proposes where code = ${code}`;
+  if (!p) throw new Error("Proposition introuvable.");
+  if (p.statut === "accepte" && p.lot_id) return p.lot_id as UUID;
+  let parentId: UUID | null = null;
+  if (p.parent_code) {
+    const [parent] = await sql`select id from lots where code = ${p.parent_code}`;
+    if (parent) parentId = parent.id as UUID;
+    else {
+      const [pp] = await sql`select lot_id from lots_proposes
+        where code = ${p.parent_code} and statut = 'accepte'`;
+      if (!pp?.lot_id) throw new Error(`Acceptez d'abord le lot parent ${p.parent_code}.`);
+      parentId = pp.lot_id as UUID;
+    }
+  }
+  const [existant] = await sql`select id from lots where code = ${code}`;
+  const lot = existant
+    ? { id: existant.id as UUID }
+    : await creerLot({ code, libelle: p.libelle as string, parentId, ordre: Number(p.ordre) });
+  await sql`update lots_proposes set statut = 'accepte', lot_id = ${lot.id} where code = ${code}`;
+  return lot.id;
+}
+
+export async function refuserLotPropose(code: string): Promise<void> {
+  await sql`update lots_proposes set statut = 'refuse' where code = ${code}`;
+  await sql`update ouvrages_lots_proposes set statut = 'refuse'
+    where lot_code = ${code} and statut = 'propose'`;
+}
+
+/** Applique les affectations proposées vers un lot (existant ou accepté). */
+export async function appliquerAffectationsProposees(lotCode: string): Promise<number> {
+  const [lot] = await sql`select id from lots where code = ${lotCode}`;
+  if (!lot) throw new Error(`Le lot ${lotCode} n'existe pas encore : acceptez-le d'abord.`);
+  const r = await sql`update ouvrages o set lot_id = ${lot.id}, updated_at = now()
+    from ouvrages_lots_proposes a
+    where a.ouvrage_id = o.id and a.lot_code = ${lotCode} and a.statut = 'propose'`;
+  await sql`update ouvrages_lots_proposes set statut = 'accepte'
+    where lot_code = ${lotCode} and statut = 'propose'`;
+  return r.count;
 }
 
 // ---------------------------------------------------------------------
@@ -1293,7 +1706,12 @@ export async function progression(): Promise<ProgressionCalage> {
       (select count(*)::int from fusions_proposees f
          join ouvrages s on s.id = f.source_id
          join ouvrages c on c.id = f.cible_id
-         where f.statut = 'proposee' and s.actif and c.actif) as doublons
+         where f.statut = 'proposee' and s.actif and c.actif) as doublons,
+      (select count(*)::int from lignes_source l join documents d on d.id = l.document_id
+         where l.hors_perimetre and l.motif_hors_perimetre = 'llm' and d.statut <> 'rejete') as hors_perimetre,
+      (select count(*)::int from lots_proposes where statut = 'propose') as lots_proposes,
+      (select count(*)::int from documents
+         where statut <> 'rejete' and (date_document is null or zone_id is null or client_id is null)) as pieces_incompletes
   `;
   return {
     lignesTotal: Number(r.lignes_total),
@@ -1304,6 +1722,9 @@ export async function progression(): Promise<ProgressionCalage> {
     lignesSansOuvrage: Number(r.sans_ouvrage),
     doublonsProposes: Number(r.doublons),
     valideesAuto: Number(r.validees_auto),
+    horsPerimetre: Number(r.hors_perimetre),
+    lotsProposes: Number(r.lots_proposes),
+    piecesIncompletes: Number(r.pieces_incompletes),
   };
 }
 

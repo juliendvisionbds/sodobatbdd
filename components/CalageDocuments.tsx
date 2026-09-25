@@ -12,11 +12,27 @@ import {
   basculerTsAction,
   rejeterDocumentAction,
 } from "@/lib/actions/documents";
-import { date as fmtDate, euro, nombre, type DocumentARevoir } from "@/lib/types";
+import { date as fmtDate, euro, nombre, LIBELLES_ZONES, type DocumentARevoir } from "@/lib/types";
+import { useParamsUrl } from "./useParamsUrl";
+import { FormulaireDocument } from "./FormulaireDocument";
 
-export function CalageDocuments({ docs: initial }: { docs: DocumentARevoir[] }) {
+export function CalageDocuments({
+  docs: initial,
+  incomplets = false,
+}: {
+  docs: DocumentARevoir[];
+  /** Mode « pièces incomplètes » (sans date, zone ou client). */
+  incomplets?: boolean;
+}) {
   const router = useRouter();
+  const { modifier } = useParamsUrl();
   const [docs, setDocs] = useState(initial);
+  const [pageRef, setPageRef] = useState(initial);
+  if (pageRef !== initial) {
+    setPageRef(initial);
+    setDocs(initial);
+  }
+  const [edition, setEdition] = useState<string | null>(null);
   const [rejetEnCours, setRejetEnCours] = useState<string | null>(null);
   const [motif, setMotif] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -53,29 +69,54 @@ export function CalageDocuments({ docs: initial }: { docs: DocumentARevoir[] }) 
       router.refresh();
     });
 
+  const bascule = (
+    <div className="vx-chips">
+      <button type="button" className="vx-chip" aria-pressed={!incomplets} onClick={() => modifier({ incomplets: null })}>
+        Écart de total
+      </button>
+      <button type="button" className="vx-chip" aria-pressed={incomplets} onClick={() => modifier({ incomplets: "1" })}>
+        Pièces incomplètes (date, zone ou client)
+      </button>
+    </div>
+  );
+
   if (docs.length === 0) {
     return (
-      <p className="vx-panel py-16 text-center text-[15px] text-sub">
-        Aucune pièce en attente de revue.
-      </p>
+      <div className="flex flex-col gap-4">
+        {bascule}
+        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+          {incomplets ? "Toutes les pièces ont une date, une zone et un client." : "Aucune pièce en attente de revue."}
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-[22px]">
-      <p className="vx-insight !py-3 text-[13.5px]">
-        Une ligne dont quantité × PU = total compte déjà dans les prix, même si
-        la pièce est à revoir. <strong>Accepter</strong> valide aussi le total de
-        la pièce. <strong>Rejeter</strong> retire toutes ses lignes des prix.
-      </p>
+      {bascule}
+      {!incomplets && (
+        <p className="vx-insight !py-3 text-[13.5px]">
+          Une ligne dont quantité × PU = total compte déjà dans les prix, même si
+          la pièce est à revoir. <strong>Accepter</strong> valide aussi le total de
+          la pièce. <strong>Rejeter</strong> retire toutes ses lignes des prix.
+        </p>
+      )}
       {docs.map((d) => (
         <article key={d.id} className="vx-panel">
           <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-3">
             <span className="mono text-[13.5px] font-medium text-navy">
               {d.numero ?? "Pièce"}
             </span>
-            <span className="mono text-[13px] text-sub">{fmtDate(d.date)}</span>
-            <span className="text-[14px] font-semibold">{d.client ?? "Client inconnu"}</span>
+            <span className="mono text-[13px] text-sub">
+              {d.date ? fmtDate(d.date) : <span className="badge b-amber">sans date</span>}
+            </span>
+            <span className="text-[14px] font-semibold">
+              {d.client ?? <span className="badge b-amber">client inconnu</span>}
+            </span>
+            <span className="text-[12.5px] text-sub">
+              {d.zone ? LIBELLES_ZONES[d.zone] : <span className="badge b-amber">sans zone</span>}
+              {d.zone && !d.zoneFiable && <span className="badge b-amber ml-1">zone déduite</span>}
+            </span>
             {d.chantierObjet && (
               <span className="max-w-[360px] truncate text-[13px] text-sub" title={d.chantierObjet}>
                 {d.chantierObjet}
@@ -116,7 +157,15 @@ export function CalageDocuments({ docs: initial }: { docs: DocumentARevoir[] }) 
               />
               Travaux supplémentaires (TS)
             </label>
+            <button
+              type="button"
+              onClick={() => setEdition(edition === d.id ? null : d.id)}
+              className="vx-btn-outline"
+            >
+              {edition === d.id ? "Fermer" : "Modifier la pièce…"}
+            </button>
             <span className="flex-1" />
+            {incomplets ? null : (<>
             <button
               type="button"
               disabled={enCours}
@@ -138,7 +187,28 @@ export function CalageDocuments({ docs: initial }: { docs: DocumentARevoir[] }) 
             >
               Rejeter…
             </button>
+            </>)}
           </div>
+
+          {edition === d.id && (
+            <FormulaireDocument
+              doc={{
+                id: d.id, date: d.date, typeDocument: d.typeDocument, estTs: d.estTs, numero: d.numero,
+                client: d.client, chantierObjet: d.chantierObjet, chantierCodePostal: d.chantierCodePostal,
+                chantierCommune: d.chantierCommune, zone: d.zone,
+              }}
+              fermer={() => setEdition(null)}
+              apres={(champs) =>
+                setDocs((ds) => ds.map((x) => x.id === d.id ? {
+                  ...x,
+                  date: champs.dateDocument ?? x.date,
+                  estTs: champs.estTs ?? x.estTs,
+                  client: champs.clientNom ?? x.client,
+                  zone: champs.zoneCode ?? x.zone,
+                } : x))
+              }
+            />
+          )}
 
           {rejetEnCours === d.id && (
             <form
@@ -169,7 +239,7 @@ export function CalageDocuments({ docs: initial }: { docs: DocumentARevoir[] }) 
             </form>
           )}
 
-          {d.lignesEnEcart.length > 0 ? (
+          {incomplets ? null : d.lignesEnEcart.length > 0 ? (
             <table className="vx-tbl mt-3">
               <thead>
                 <tr>

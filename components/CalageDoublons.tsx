@@ -103,8 +103,12 @@ export function CalageDoublons({ fusions: initial }: { fusions: FusionProposee[]
                 <span aria-hidden className="text-[20px] text-faint">→</span>
                 <Cote o={cible} role="Cible (conserve l'historique)" />
                 <div className="flex w-full flex-wrap items-center gap-2 border-t border-hairline pt-3 xl:w-auto xl:border-0 xl:pt-0">
-                  <span className="mono text-[12.5px] text-sub" title="Similarité des libellés">
+                  <span
+                    className="mono text-[12.5px] text-sub"
+                    title={f.methode === "embedding" ? "Proximité de sens (embeddings)" : "Similarité des libellés (trigrammes)"}
+                  >
                     {f.score == null ? "—" : nombre(f.score, 2)}
+                    {f.methode === "embedding" && <span className="badge b-neutre ml-1.5">par sens</span>}
                   </span>
                   {avis && <span className={`badge ${avis.classe}`}>{avis.libelle}</span>}
                   {f.motif && (

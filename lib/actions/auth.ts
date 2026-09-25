@@ -77,7 +77,7 @@ export async function connecter(
 
   // ne rediriger que vers des écrans existants (évite un 404 si l'URL
   // d'origine était erronée)
-  const ROUTES_CONNUES = ["/historique", "/chat", "/calage", "/import"];
+  const ROUTES_CONNUES = ["/frais", "/historique", "/chat", "/calage", "/import"];
   const suiteValide =
     suite === "/" || ROUTES_CONNUES.some((r) => suite.startsWith(r));
   redirect(suiteValide ? suite : "/");
