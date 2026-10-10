@@ -26,7 +26,7 @@ export function Superposee({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-start justify-center bg-[rgba(30,34,38,.28)] px-4 pt-[12vh]"
+      className="fixed inset-0 z-[80] flex items-start justify-center bg-[rgba(22,24,26,.32)] px-4 pt-[12vh]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) fermer();
       }}
@@ -86,7 +86,7 @@ export function DialogueConfirmation({
           ref={refAnnuler}
           type="button"
           onClick={fermer}
-          className="vx-btn-outline"
+          className="vx-btn-outline !px-3.5 !py-[9px] !text-[14px]"
         >
           Annuler
         </button>
@@ -96,8 +96,8 @@ export function DialogueConfirmation({
           onClick={confirmer}
           className={
             ton === "danger"
-              ? "rounded-[9px] border border-red bg-surface px-4 py-2 text-[14px] font-semibold text-red transition-colors hover:bg-red-bg disabled:opacity-40"
-              : "vx-btn !px-4 !py-2 !text-[14px]"
+              ? "rounded-[8px] border border-red bg-surface px-4 py-[9px] text-[14px] font-medium leading-[1.4] text-red transition-colors hover:bg-red-bg disabled:opacity-40"
+              : "vx-btn"
           }
         >
           {enCours ? "…" : libelleConfirmer}

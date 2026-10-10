@@ -74,9 +74,9 @@ export function CalageLots({
     });
 
   return (
-    <div className="flex flex-col gap-[22px]">
-      {erreur && <p className="vx-insight vx-insight--neg !py-3 text-[14px] text-red">{erreur}</p>}
-      {message && <p className="vx-insight vx-insight--pos !py-3 text-[14px] font-medium text-green">{message}</p>}
+    <div className="flex flex-col gap-5">
+      {erreur && <p className="vx-insight vx-insight--neg text-[13px] text-red">{erreur}</p>}
+      {message && <p className="vx-insight vx-insight--pos text-[13px] font-medium text-green">{message}</p>}
 
       {/* ---------- proposition de l'IA ---------- */}
       {(proposes.length > 0 || versExistants.length > 0) && (
@@ -88,9 +88,9 @@ export function CalageLots({
           </p>
           <ul className="flex flex-col gap-2">
             {proposes.map((p) => (
-              <li key={p.code} className="flex flex-wrap items-center gap-3 rounded-[10px] border border-line px-4 py-3">
-                <span className="mono text-[12.5px] text-sub">{p.code}</span>
-                <span className="font-semibold">{p.libelle}</span>
+              <li key={p.code} className="flex flex-wrap items-center gap-3 rounded-[8px] border border-line px-4 py-3">
+                <span className="mono text-[13px] text-sub">{p.code}</span>
+                <span className="font-medium">{p.libelle}</span>
                 <span className="text-[12.5px] text-sub">sous {p.parentCode ?? "la racine"} · {p.nbOuvrages} ouvrage{p.nbOuvrages > 1 ? "s" : ""}</span>
                 {p.motif && <span className="max-w-[360px] truncate text-[12.5px] text-faint" title={p.motif}>{p.motif}</span>}
                 <span className="flex-1" />
@@ -119,9 +119,9 @@ export function CalageLots({
               </li>
             ))}
             {versExistants.map((v) => (
-              <li key={v.lotCode} className="flex flex-wrap items-center gap-3 rounded-[10px] border border-hairline px-4 py-3">
-                <span className="mono text-[12.5px] text-sub">{v.lotCode}</span>
-                <span className="font-semibold">{v.libelle}</span>
+              <li key={v.lotCode} className="flex flex-wrap items-center gap-3 rounded-[8px] border border-hairline px-4 py-3">
+                <span className="mono text-[13px] text-sub">{v.lotCode}</span>
+                <span className="font-medium">{v.libelle}</span>
                 <span className="text-[12.5px] text-sub">lot existant · {v.nbOuvrages} ouvrage{v.nbOuvrages > 1 ? "s" : ""} à y déplacer</span>
                 <span className="flex-1" />
                 <button type="button" disabled={enCours} className="vx-btn-outline !py-1.5"
@@ -135,25 +135,25 @@ export function CalageLots({
       )}
 
       {/* ---------- arbre + ouvrages ---------- */}
-      <div className="grid grid-cols-1 gap-[22px] lg:grid-cols-[320px_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]">
         <section className="vx-panel !p-4">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="vx-panel__title !text-[16px]">Arborescence</h2>
+            <h2 className="vx-panel__title">Arborescence</h2>
             <button type="button" className="vx-btn-ghost" onClick={() => setNouveau({ parentId: null })}>+ Lot</button>
           </div>
           <ul>
             {plats.map(({ lot, profondeur }) => (
               <li key={lot.id}>
                 <div
-                  className={`flex items-center gap-1.5 rounded-[7px] px-2 py-[5px] text-[13.5px] ${
-                    actif === lot.id ? "bg-navy font-semibold text-white" : "hover:bg-navy-tint"
+                  className={`flex items-center gap-1.5 rounded-[6px] px-2 py-[5px] text-[13px] ${
+                    actif === lot.id ? "bg-petrole font-semibold text-white" : "hover:bg-petrole-wash"
                   }`}
                   style={{ paddingLeft: 8 + profondeur * 16 }}
                 >
                   <button type="button" onClick={() => setActif(lot.id)} className="flex min-w-0 flex-1 items-baseline gap-2 text-left">
                     <span className={`mono text-[11px] ${actif === lot.id ? "text-white/80" : "text-faint"}`}>{lot.code}</span>
                     <span className="truncate">{lot.libelle}</span>
-                    <span className={`mono ml-auto text-[11.5px] ${actif === lot.id ? "text-white/80" : "text-faint"}`}>{lot.nbOuvragesCumule}</span>
+                    <span className={`ml-auto text-[12px] ${actif === lot.id ? "text-white/80" : "text-faint"}`}>{lot.nbOuvragesCumule}</span>
                   </button>
                   {actif === lot.id && (
                     <span className="flex shrink-0 gap-1">
@@ -192,13 +192,13 @@ export function CalageLots({
           )}
         </section>
 
-        <section className="vx-panel !p-0">
-          <div className="flex flex-wrap items-center gap-2 border-b border-line px-5 py-3">
-            <h2 className="vx-panel__title !text-[16px]">{lotActif ? `${lotActif.code} · ${lotActif.libelle}` : "Ouvrages"}</h2>
+        <section className="vx-panel vx-panel--flush">
+          <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-3">
+            <h2 className="vx-panel__title">{lotActif ? `${lotActif.code} · ${lotActif.libelle}` : "Ouvrages"}</h2>
             <span className="text-[12.5px] text-sub">{ouvrages.length} ouvrage{ouvrages.length > 1 ? "s" : ""}{ouvrages.length >= 200 ? " (200 premiers)" : ""}</span>
-            <input type="search" value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Filtrer…" aria-label="Filtrer les ouvrages" className="vx-input ml-auto !min-w-[180px] !py-[6px] !text-[13px]" />
+            <input type="search" value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Filtrer…" aria-label="Filtrer les ouvrages" className="vx-input ml-auto !min-w-[180px] !py-[7px] !text-[13px]" />
           </div>
-          <div className="flex flex-wrap items-center gap-2 border-b border-hairline px-5 py-2.5 text-[13px]">
+          <div className="flex flex-wrap items-center gap-2 border-b border-hairline px-6 py-2.5 text-[13px]">
             <span className="text-sub">{selection.size} sélectionné{selection.size > 1 ? "s" : ""}</span>
             <select className="vx-select !py-1.5 !text-[13px]" value={cibleDeplacement} onChange={(e) => setCibleDeplacement(e.target.value)} aria-label="Lot de destination">
               <option value="">Affecter au lot…</option>
@@ -220,7 +220,7 @@ export function CalageLots({
             <thead>
               <tr>
                 <th className="!w-8">
-                  <input type="checkbox" aria-label="Tout cocher" className="accent-[var(--navy)]"
+                  <input type="checkbox" aria-label="Tout cocher" className="accent-[var(--petrole)]"
                     checked={ouvrages.length > 0 && selection.size === ouvrages.length}
                     onChange={(e) => setSelection(e.target.checked ? new Set(ouvrages.map((o) => o.id)) : new Set())} />
                 </th>
@@ -232,9 +232,9 @@ export function CalageLots({
             <tbody>
               {ouvrages.map((o) => (
                 <tr key={o.id}>
-                  <td><input type="checkbox" aria-label="Sélectionner" className="accent-[var(--navy)]" checked={selection.has(o.id)}
+                  <td><input type="checkbox" aria-label="Sélectionner" className="accent-[var(--petrole)]" checked={selection.has(o.id)}
                     onChange={() => setSelection((s) => { const n = new Set(s); if (n.has(o.id)) n.delete(o.id); else n.add(o.id); return n; })} /></td>
-                  <td><span className="mono mr-2 text-[11.5px] text-faint">{o.code ?? "—"}</span>{o.libelleDevis}</td>
+                  <td><span className="mono mr-2 text-[12px] text-faint">{o.code ?? "—"}</span>{o.libelleDevis}</td>
                   <td className="vx-cell-muted">{o.unite ? LIBELLES_UNITES[o.unite] : "—"}</td>
                   <td className="vx-cell-amount">{o.nbLignes}</td>
                 </tr>
@@ -300,10 +300,10 @@ function FormulaireLot({
       corps={
         <div className="flex flex-col gap-3">
           {parentLibelle && <span className="text-[12.5px] text-faint">Sous « {parentLibelle} »</span>}
-          <label className="text-[13px] font-semibold text-sub">Code
+          <label className="text-[12px] font-medium text-faint">Code
             <input autoFocus value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="GO.BA.DAL" className="vx-input mono mt-1 w-full !min-w-0" />
           </label>
-          <label className="text-[13px] font-semibold text-sub">Libellé
+          <label className="text-[12px] font-medium text-faint">Libellé
             <input value={libelle} onChange={(e) => setLibelle(e.target.value)} placeholder="Dalles et planchers" className="vx-input mt-1 w-full !min-w-0" />
           </label>
         </div>

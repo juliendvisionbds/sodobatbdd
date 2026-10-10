@@ -70,11 +70,11 @@ export function CalageDocuments({
     });
 
   const bascule = (
-    <div className="vx-chips">
-      <button type="button" className="vx-chip" aria-pressed={!incomplets} onClick={() => modifier({ incomplets: null })}>
+    <div className="vx-seg self-start">
+      <button type="button" className="vx-seg__opt" aria-pressed={!incomplets} onClick={() => modifier({ incomplets: null })}>
         Écart de total
       </button>
-      <button type="button" className="vx-chip" aria-pressed={incomplets} onClick={() => modifier({ incomplets: "1" })}>
+      <button type="button" className="vx-seg__opt" aria-pressed={incomplets} onClick={() => modifier({ incomplets: "1" })}>
         Pièces incomplètes (date, zone ou client)
       </button>
     </div>
@@ -84,7 +84,7 @@ export function CalageDocuments({
     return (
       <div className="flex flex-col gap-4">
         {bascule}
-        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+        <p className="vx-panel py-16 text-center text-[14px] text-sub">
           {incomplets ? "Toutes les pièces ont une date, une zone et un client." : "Aucune pièce en attente de revue."}
         </p>
       </div>
@@ -92,10 +92,10 @@ export function CalageDocuments({
   }
 
   return (
-    <div className="flex flex-col gap-[22px]">
+    <div className="flex flex-col gap-5">
       {bascule}
       {!incomplets && (
-        <p className="vx-insight !py-3 text-[13.5px]">
+        <p className="vx-insight text-[13px]">
           Une ligne dont quantité × PU = total compte déjà dans les prix, même si
           la pièce est à revoir. <strong>Accepter</strong> valide aussi le total de
           la pièce. <strong>Rejeter</strong> retire toutes ses lignes des prix.
@@ -104,13 +104,13 @@ export function CalageDocuments({
       {docs.map((d) => (
         <article key={d.id} className="vx-panel">
           <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-3">
-            <span className="mono text-[13.5px] font-medium text-navy">
+            <span className="mono text-[13px] text-sub">
               {d.numero ?? "Pièce"}
             </span>
-            <span className="mono text-[13px] text-sub">
+            <span className="text-[13px] text-faint">
               {d.date ? fmtDate(d.date) : <span className="badge b-amber">sans date</span>}
             </span>
-            <span className="text-[14px] font-semibold">
+            <span className="text-[14px] font-medium">
               {d.client ?? <span className="badge b-amber">client inconnu</span>}
             </span>
             <span className="text-[12.5px] text-sub">
@@ -126,7 +126,7 @@ export function CalageDocuments({
               {d.nbLignes} lignes
               {d.nbLignesEcart > 0 ? ` · ${d.nbLignesEcart} en écart` : ""}
             </span>
-            <span className="mono ml-auto text-[13.5px] font-medium">
+            <span className="ml-auto text-[14px] font-semibold">
               {euro(d.totalHt)}
               {d.controleTotal === "non_verifiable" && (
                 <span className="badge b-amber ml-2" title="Aucun total lisible sur la pièce">
@@ -147,13 +147,13 @@ export function CalageDocuments({
             ) : (
               <span className="text-[12.5px] text-faint">Pièce d&apos;origine absente</span>
             )}
-            <label className="flex cursor-pointer items-center gap-2 rounded-[8px] border border-line px-3 py-[7px] text-[13.5px]">
+            <label className="flex cursor-pointer items-center gap-2 rounded-[8px] border border-control px-3 py-[7px] text-[13px] leading-[1.4]">
               <input
                 type="checkbox"
                 checked={d.estTs}
                 disabled={enCours}
                 onChange={() => basculerTs(d)}
-                className="accent-[var(--navy)]"
+                className="accent-[var(--petrole)]"
               />
               Travaux supplémentaires (TS)
             </label>
@@ -171,7 +171,7 @@ export function CalageDocuments({
               disabled={enCours}
               onClick={() => accepter(d)}
               title="Le total est considéré comme juste ; la pièce passe en validée."
-              className="vx-btn !px-4 !py-2 !text-[14px]"
+              className="vx-btn vx-btn--sm"
             >
               Accepter
             </button>
@@ -183,7 +183,7 @@ export function CalageDocuments({
                 setMotif("");
                 setErreur(null);
               }}
-              className="rounded-[9px] border border-red bg-surface px-4 py-2 text-[14px] font-semibold text-red transition-colors hover:bg-red-bg disabled:opacity-40"
+              className="rounded-[8px] border border-red bg-surface px-3.5 py-[7px] text-[13px] font-medium leading-[1.4] text-red transition-colors hover:bg-red-bg disabled:opacity-40"
             >
               Rejeter…
             </button>
@@ -212,7 +212,7 @@ export function CalageDocuments({
 
           {rejetEnCours === d.id && (
             <form
-              className="mt-3 flex flex-wrap items-center gap-2 rounded-[10px] border border-red bg-red-bg p-3"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-[8px] bg-red-bg p-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 rejeter(d);
@@ -227,7 +227,7 @@ export function CalageDocuments({
                 }}
                 placeholder="Motif du rejet (obligatoire)"
                 aria-label="Motif du rejet"
-                className="vx-input flex-1 !min-w-[220px] !py-[7px]"
+                className="vx-input flex-1 !min-w-[220px] !py-[7px] !text-[13px]"
               />
               <button type="submit" disabled={enCours} className="vx-btn-outline !border-red !text-red">
                 Confirmer le rejet

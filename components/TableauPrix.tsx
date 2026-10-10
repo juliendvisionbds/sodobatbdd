@@ -64,7 +64,7 @@ export function TableauPrix({
       id: "lot",
       header: "Lot",
       cell: (c) => (
-        <span className="mono text-[12px] text-faint">{c.getValue() ?? "—"}</span>
+        <span className="mono text-[13px] text-sub">{c.getValue() ?? "—"}</span>
       ),
     }),
     aide.accessor((r) => r.ouvrage.libelleDevis, {
@@ -115,7 +115,7 @@ export function TableauPrix({
       id: "derniere_occurrence",
       header: "Dernier devis",
       cell: (c) => (
-        <span className="mono text-[13px] text-sub">{fmtDate(c.getValue())}</span>
+        <span className="text-[13px] text-faint">{fmtDate(c.getValue())}</span>
       ),
     }),
   ];
@@ -141,7 +141,7 @@ export function TableauPrix({
   // ---------- états vides ----------
   if (page.total === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-20 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-20 text-center">
         {baseVide ? (
           <>
             <p className="vx-panel__title">Aucun prix pour le moment.</p>
@@ -196,8 +196,8 @@ export function TableauPrix({
                     <button
                       type="button"
                       onClick={() => trier(h.column.id)}
-                      className={`cursor-pointer whitespace-nowrap uppercase tracking-[.04em] hover:text-navy ${
-                        tri.colonne === h.column.id ? "text-navy" : ""
+                      className={`cursor-pointer whitespace-nowrap hover:text-petrole ${
+                        tri.colonne === h.column.id ? "font-semibold text-petrole" : ""
                       }`}
                       aria-label={`Trier par ${String(h.column.columnDef.header)}`}
                     >
@@ -246,7 +246,7 @@ export function TableauPrix({
       </div>
 
       {/* ---------- cartes empilées (< 768px) ---------- */}
-      <div className="space-y-2 md:hidden">
+      <div className="space-y-2 p-4 md:hidden">
         {page.lignes.map((r) => {
           const ref = r.normaux ?? r.ts;
           const v = ref ? valeurs(ref, indexe) : null;
@@ -256,10 +256,10 @@ export function TableauPrix({
               key={r.ouvrage.id}
               type="button"
               onClick={() => ouvrir(r.ouvrage.id)}
-              className="block w-full rounded-[10px] border border-line bg-surface p-3.5 text-left transition-colors hover:border-navy hover:bg-navy-tint"
+              className="block w-full rounded-[8px] border border-line bg-surface p-3.5 text-left transition-colors hover:border-petrole hover:bg-petrole-wash"
             >
-              <div className="mono text-[12px] text-faint">
-                {r.ouvrage.lotCode ?? "—"} ·{" "}
+              <div className="text-[12px] text-faint">
+                <span className="mono">{r.ouvrage.lotCode ?? "—"}</span> ·{" "}
                 {r.ouvrage.unite ? LIBELLES_UNITES[r.ouvrage.unite] : "—"}
               </div>
               <div className="mt-0.5 text-[14px] leading-snug">
@@ -296,7 +296,9 @@ export function TableauPrix({
       </div>
 
       {/* ---------- pagination ---------- */}
-      <Pagination page={page.page} total={page.total} parPage={page.parPage} />
+      <div className="pb-4 empty:hidden">
+        <Pagination page={page.page} total={page.total} parPage={page.parPage} />
+      </div>
     </div>
   );
 }

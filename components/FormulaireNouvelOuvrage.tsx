@@ -55,7 +55,7 @@ export function FormulaireNouvelOuvrage({
   return (
     <Superposee titre="Nouvel ouvrage canonique" fermer={fermer}>
       <form action={soumettre} className="flex flex-col gap-3">
-        <label className="text-[13px] font-semibold text-sub">
+        <label className="text-[12px] font-medium text-faint">
           Libellé devis (affiché)
           <input
             ref={ref}
@@ -65,7 +65,7 @@ export function FormulaireNouvelOuvrage({
             className="vx-input mt-1 w-full !min-w-0"
           />
         </label>
-        <label className="text-[13px] font-semibold text-sub">
+        <label className="text-[12px] font-medium text-faint">
           Libellé normalisé (rapprochement) — vide = déduit du libellé
           <input
             name="normalise"
@@ -73,7 +73,7 @@ export function FormulaireNouvelOuvrage({
           />
         </label>
         <div className="grid grid-cols-3 gap-3">
-          <label className="text-[13px] font-semibold text-sub">
+          <label className="text-[12px] font-medium text-faint">
             Code
             <input
               name="code"
@@ -81,7 +81,7 @@ export function FormulaireNouvelOuvrage({
               className="vx-input mono mt-1 w-full !min-w-0"
             />
           </label>
-          <label className="text-[13px] font-semibold text-sub">
+          <label className="text-[12px] font-medium text-faint">
             Lot
             <select name="lot" className="vx-select mt-1 w-full">
               <option value="">—</option>
@@ -92,7 +92,7 @@ export function FormulaireNouvelOuvrage({
               ))}
             </select>
           </label>
-          <label className="text-[13px] font-semibold text-sub">
+          <label className="text-[12px] font-medium text-faint">
             Unité
             <select
               name="unite"
@@ -109,7 +109,7 @@ export function FormulaireNouvelOuvrage({
           </label>
         </div>
         <label className="flex items-center gap-2 text-[13px]">
-          <input type="checkbox" name="forfait" className="accent-[var(--navy)]" />
+          <input type="checkbox" name="forfait" className="accent-[var(--petrole)]" />
           Ouvrage forfaitaire (prix au forfait, pas à l&apos;unité)
         </label>
         <div className="flex justify-end gap-2">
@@ -119,7 +119,7 @@ export function FormulaireNouvelOuvrage({
           <button
             type="submit"
             disabled={enCours}
-            className="vx-btn !px-4 !py-2 !text-[14px]"
+            className="vx-btn vx-btn--sm"
           >
             {enCours ? "Création…" : "Créer et rattacher"}
           </button>

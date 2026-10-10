@@ -206,7 +206,7 @@ export function ImportDepot() {
         />
       )}
       {erreurAgregats && (
-        <div className="vx-insight vx-insight--warn mb-3 flex flex-wrap items-center gap-3 !py-3 text-[13.5px]">
+        <div className="vx-insight vx-insight--warn mb-3 flex flex-wrap items-center gap-3 text-[13px]">
           <span>
             Pièces importées, mais les prix n&apos;ont pas été recalculés : {erreurAgregats}
           </span>
@@ -232,13 +232,13 @@ export function ImportDepot() {
           setSurvol(false);
           ajouter(e.dataTransfer.files);
         }}
-        className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-[10px] border border-dashed px-6 py-10 text-center transition-colors ${
+        className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-[8px] border border-dashed px-6 py-10 text-center transition-colors ${
           survol
-            ? "border-navy bg-navy-tint"
-            : "border-navy-line bg-surface-sunken hover:border-navy hover:bg-navy-tint"
+            ? "border-petrole bg-petrole-wash"
+            : "border-control bg-surface-sunken hover:border-petrole hover:bg-petrole-wash"
         }`}
       >
-        <span className="text-[15px] font-semibold text-navy-deep">
+        <span className="text-[14px] font-medium text-petrole">
           Déposez les devis ici, ou cliquez pour choisir
         </span>
         <span className="text-[13px] text-sub">
@@ -268,12 +268,12 @@ export function ImportDepot() {
               <span className="max-w-[420px] truncate font-medium">
                 {f.fichier.name}
               </span>
-              <span className="mono text-[12px] text-faint">
+              <span className="text-[12px] text-faint">
                 {(f.fichier.size / 1024).toFixed(0)} Ko
               </span>
               <span className="ml-auto flex items-center gap-2">
                 {f.bilan?.nbLignes != null && (
-                  <span className="mono text-[12.5px] text-sub">
+                  <span className="text-[13px] text-faint">
                     {f.bilan.nbLignes} lignes
                     {f.bilan.nbLignesEcart ? ` · ${f.bilan.nbLignesEcart} écart(s)` : ""}
                     {f.bilan.ouvragesCrees

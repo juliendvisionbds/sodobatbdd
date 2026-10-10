@@ -51,7 +51,7 @@ export function Pastille({
         aria-pressed={actif}
         className="vx-chip"
       >
-        {libelle} <span aria-hidden className="ml-0.5 text-[10px] opacity-70">▾</span>
+        {libelle} <span aria-hidden className="vx-chip__caret">▼</span>
       </button>
       {ouvert && (
         <div className="vx-menu absolute left-0 top-full z-30 mt-1.5 min-w-[210px]">
@@ -72,8 +72,8 @@ export function Case({
   basculer: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 rounded-[7px] px-2.5 py-1.5 text-[13.5px] hover:bg-navy-tint">
-      <input type="checkbox" checked={coche} onChange={basculer} className="accent-[var(--navy)]" />
+    <label className="flex cursor-pointer items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] hover:bg-petrole-wash">
+      <input type="checkbox" checked={coche} onChange={basculer} className="accent-[var(--petrole)]" />
       {libelle}
     </label>
   );
@@ -106,17 +106,17 @@ function OptionsLot({
       {lots.map((l) => (
         <span key={l.id} className="block">
           <label
-            className="flex cursor-pointer items-center gap-2.5 rounded-[7px] py-1.5 pr-2.5 text-[13.5px] hover:bg-navy-tint"
+            className="flex cursor-pointer items-center gap-2.5 rounded-[6px] py-1.5 pr-2.5 text-[13px] hover:bg-petrole-wash"
             style={{ paddingLeft: 10 + profondeur * 16 }}
           >
             <input
               type="checkbox"
               checked={lotActif === l.id}
               onChange={() => choisir(lotActif === l.id ? null : l.id)}
-              className="accent-[var(--navy)]"
+              className="accent-[var(--petrole)]"
             />
             <span className="flex-1 truncate">{l.libelle}</span>
-            <span className="mono text-[11.5px] text-faint">
+            <span className="text-[12px] text-faint">
               {sansPrix ? l.nbOuvragesCumule : l.nbAvecPrixCumule}
             </span>
           </label>
@@ -160,7 +160,7 @@ export function Filtres({
     depuis === `${a}-01-01` && jusqua === `${a}-12-31`;
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-2">
       {lots.length > 0 && (
         <Pastille libelle={libelleLot(lots, lot) ?? "Lot"} actif={Boolean(lot)} enfants={
           <span className="block min-w-[260px]">
@@ -191,13 +191,13 @@ export function Filtres({
           ))}
           <div className="mt-1.5 border-t border-hairline pt-2">
             <div className="grid grid-cols-2 gap-2 px-2.5 pb-1">
-              <label className="text-[12px] font-semibold text-sub">
+              <label className="text-[12px] font-medium text-faint">
                 Du
                 <input type="date" value={depuis}
                   onChange={(e) => modifier({ depuis: e.target.value || null })}
                   className="vx-select mt-1 w-full !px-2 !py-1.5 !text-[13px]" />
               </label>
-              <label className="text-[12px] font-semibold text-sub">
+              <label className="text-[12px] font-medium text-faint">
                 Au
                 <input type="date" value={jusqua}
                   onChange={(e) => modifier({ jusqua: e.target.value || null })}
@@ -245,12 +245,12 @@ export function Filtres({
               basculer={() => modifier({ fiab: v || null })} />
           ))}
           <div className="mt-1.5 border-t border-hairline px-2.5 pb-1 pt-2">
-            <label className="text-[12px] font-semibold text-sub">
+            <label className="text-[12px] font-medium text-faint">
               n minimum
               <input
                 type="number" min={0} value={nmin}
                 onChange={(e) => modifier({ nmin: e.target.value || null })}
-                className="vx-select mono mt-1 w-full !px-2 !py-1.5 !text-[13px]"
+                className="vx-select mt-1 w-full !px-2 !py-1.5 !text-[13px]"
               />
             </label>
           </div>
@@ -272,7 +272,7 @@ export function Filtres({
               sansprix: null,
             })
           }
-          className="vx-btn-ghost ml-1"
+          className="vx-link ml-1 !text-[13px]"
         >
           Effacer les filtres ({nbActifs})
         </button>

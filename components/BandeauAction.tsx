@@ -48,16 +48,16 @@ export function BandeauAction({
   return (
     <div
       role="status"
-      className="vx-insight vx-insight--pos mb-4 flex flex-wrap items-center gap-3 !py-3"
+      className="vx-insight vx-insight--pos mb-4 flex flex-wrap items-center gap-3"
     >
-      <span className="text-[14px] font-medium text-green">{geste.message}</span>
+      <span className="text-[13px] font-medium text-green">{geste.message}</span>
       <button
         type="button"
         disabled={enCours}
         onClick={annuler}
         className="vx-btn-outline ml-auto !gap-2 !py-1.5"
       >
-        <kbd className="mono rounded-[6px] border border-navy-line bg-navy-tint px-1.5 py-0.5 text-[11.5px] text-navy">
+        <kbd className="mono rounded-[5px] border border-line bg-surface-sunken px-1.5 py-0.5 text-[11px] text-sub">
           Z
         </kbd>
         {enCours ? "Annulation…" : "Annuler"}

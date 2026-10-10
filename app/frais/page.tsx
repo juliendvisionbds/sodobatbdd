@@ -7,6 +7,7 @@
 import { Suspense } from "react";
 import { ouvrages, referentiel } from "@/lib/queries";
 import { EnTete } from "@/components/EnTete";
+import { EtatBase } from "@/components/EtatBase";
 import { FicheOuvrage } from "@/components/FicheOuvrage";
 import { TableauFrais } from "@/components/TableauFrais";
 import { Kpi, Panneau, RangeeKpi, TitrePage, entier } from "@/components/Vision";
@@ -33,10 +34,11 @@ export default async function PageFrais({
     <div className="min-h-screen">
       <EnTete actif="frais" synthese={synthese} />
 
-      <main className="vx-wrap pb-16 pt-[30px]">
+      <main className="vx-wrap pb-16 pt-7">
         <TitrePage
           titre="Ce que coûte un chantier avant le premier m³."
           chapo="Installation, base vie, études, amenée et repli, compte prorata : ces lignes n'ont pas de prix unitaire. Elles sont suivies en part du montant du chantier, sur les devis validés."
+          meta={<EtatBase synthese={synthese} />}
         />
 
         <RangeeKpi
@@ -57,6 +59,7 @@ export default async function PageFrais({
         />
 
         <Panneau
+          aRas
           titre="Frais de chantier"
           meta={`${entier(avecDonnees.length)} poste${avecDonnees.length > 1 ? "s" : ""} avec des données`}
           enfants={
@@ -69,7 +72,7 @@ export default async function PageFrais({
 
       {ouvrageOuvert && (
         <div className="fixed inset-0 z-[80] flex justify-end">
-          <div className="hidden flex-1 bg-[rgba(30,34,38,.14)] sm:block" aria-hidden />
+          <div className="hidden flex-1 bg-[rgba(22,24,26,.18)] sm:block" aria-hidden />
           <aside role="dialog" aria-label="Fiche ouvrage" className="panneau-lateral h-full w-full max-w-[620px] border-l border-line bg-surface">
             <Suspense fallback={<div className="p-6 text-[13.5px] text-sub">Chargement…</div>}>
               <FicheOuvrage

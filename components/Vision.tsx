@@ -1,24 +1,28 @@
 // =====================================================================
-// Briques de mise en page du design system Vision (classes vx-*).
-// Ordre d'une vue : titre de page -> rangée de KPI -> panneaux.
+// Briques de mise en page du design system Sodobat (classes vx-*).
+// Ordre d'une vue : titre de page -> bandeau de KPI -> panneaux.
 // =====================================================================
 
 export function TitrePage({
   titre,
   chapo,
+  meta,
   actions,
 }: {
   titre: string;
   chapo?: React.ReactNode;
+  /** ligne de métadonnées sous le chapô (état de la base, période…) */
+  meta?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="vx-heading flex flex-wrap items-end justify-between gap-4">
+    <div className="vx-heading">
       <div>
         <h1 className="vx-heading__title">{titre}</h1>
         {chapo && <p className="vx-heading__lead">{chapo}</p>}
+        {meta && <div className="vx-heading__meta">{meta}</div>}
       </div>
-      {actions}
+      {actions && <div className="flex items-center gap-2.5">{actions}</div>}
     </div>
   );
 }
@@ -48,7 +52,7 @@ export function Kpi({
 }
 
 export function RangeeKpi({ enfants }: { enfants: React.ReactNode }) {
-  return <div className="vx-kpis mb-[22px]">{enfants}</div>;
+  return <div className="vx-kpis mb-5">{enfants}</div>;
 }
 
 export function Panneau({
@@ -57,6 +61,8 @@ export function Panneau({
   description,
   actions,
   enfants,
+  pied,
+  aRas = false,
   className = "",
   corpsClassName = "",
 }: {
@@ -65,25 +71,35 @@ export function Panneau({
   description?: React.ReactNode;
   actions?: React.ReactNode;
   enfants: React.ReactNode;
+  /** note de lecture sous le contenu, séparée par un filet */
+  pied?: React.ReactNode;
+  /** contenu bord à bord (tableau) : l'en-tête garde seul sa marge */
+  aRas?: boolean;
   className?: string;
   corpsClassName?: string;
 }) {
   const aEntete = titre || meta || actions;
+  const decale = !aRas && (aEntete || description);
   return (
-    <section className={`vx-panel ${className}`}>
+    <section className={`vx-panel ${aRas ? "vx-panel--flush" : ""} ${className}`}>
       {aEntete && (
         <div className="vx-panel__head">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             {titre && <h2 className="vx-panel__title">{titre}</h2>}
             {meta && <span className="vx-panel__meta">{meta}</span>}
           </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+          {actions && <div className="flex items-center gap-2.5">{actions}</div>}
         </div>
       )}
-      {description && <p className="vx-panel__desc mt-1">{description}</p>}
-      <div className={aEntete || description ? `mt-4 ${corpsClassName}` : corpsClassName}>
+      {description && (
+        <p className={`vx-panel__desc ${aRas ? "px-6 pt-3" : "mt-1"}`}>{description}</p>
+      )}
+      <div className={decale ? `mt-4 ${corpsClassName}` : corpsClassName}>
         {enfants}
       </div>
+      {pied && (
+        <div className={`vx-panel__foot ${aRas ? "" : "-mx-6 -mb-[22px] mt-4"}`}>{pied}</div>
+      )}
     </section>
   );
 }

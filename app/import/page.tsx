@@ -4,7 +4,9 @@
 // =====================================================================
 
 import { sql } from "@/lib/db";
+import { referentiel } from "@/lib/queries";
 import { EnTete } from "@/components/EnTete";
+import { EtatBase } from "@/components/EtatBase";
 import { ImportDepot } from "@/components/ImportDepot";
 import { ImportRelance } from "@/components/ImportRelance";
 import { date as fmtDate } from "@/lib/types";
@@ -67,14 +69,17 @@ export default async function PageImport() {
     count(*)::int as total
     from imports`;
 
+  const synthese = await referentiel.synthese();
+
   return (
     <div className="min-h-screen">
-      <EnTete actif="import" />
+      <EnTete actif="import" synthese={synthese} />
 
-      <main className="vx-wrap pb-16 pt-[30px]">
+      <main className="vx-wrap pb-16 pt-7">
         <TitrePage
           titre="Chaque pièce déposée, intégrée."
           chapo="Déposez les devis et factures : chaque fichier est archivé, lu par l'IA, contrôlé ligne à ligne puis inséré dans la base. Les prix du tableau se recalculent aussitôt."
+          meta={<EtatBase synthese={synthese} lienImport={false} />}
         />
 
         <RangeeKpi
@@ -96,21 +101,22 @@ export default async function PageImport() {
         <Panneau
           titre="Déposer des pièces"
           meta="PDF, XLS, XLSX, ODS"
-          className="mb-[22px]"
+          className="mb-5"
           enfants={<ImportDepot />}
         />
 
         <Panneau
+          aRas
           titre="Flux d'import"
           meta={`${entier(imports.length)} derniers fichiers`}
           enfants={
             imports.length === 0 ? (
-              <p className="py-10 text-center text-[15px] text-sub">
+              <p className="px-6 py-10 text-center text-[14px] text-sub">
                 Aucun import pour le moment. Déposez les devis ci-dessus :
                 chaque fichier est archivé, extrait, contrôlé puis inséré.
               </p>
             ) : (
-              <ul className="border-t border-line">
+              <ul>
                 {imports.map((imp) => {
                   const estBloque = bloque(imp);
                   const badge = estBloque
@@ -119,17 +125,17 @@ export default async function PageImport() {
                   return (
                     <li
                       key={imp.id}
-                      className="flex flex-wrap items-center gap-3 border-b border-hairline px-1 py-2.5 text-[14px]"
+                      className="flex flex-wrap items-center gap-3 border-b border-hairline px-6 py-3 text-[14px] last:border-0"
                     >
                       <span className="max-w-[420px] truncate font-medium">
                         {imp.fichier_nom}
                       </span>
-                      <span className="mono text-[12.5px] text-faint">
+                      <span className="text-[13px] text-faint">
                         {fmtDate(imp.created_at)}
                       </span>
                       <span className="ml-auto flex items-center gap-2">
                         {imp.bilan?.nbLignes != null && (
-                          <span className="mono text-[12.5px] text-sub">
+                          <span className="text-[13px] text-faint">
                             {imp.bilan.nbLignes} lignes
                             {imp.bilan.nbLignesEcart
                               ? ` · ${imp.bilan.nbLignesEcart} écart(s)`

@@ -1,7 +1,7 @@
 "use client";
 
-// Carte utilisateur en haut à droite (avatar, libellé, rôle). Au clic :
-// menu contenant la déconnexion.
+// Utilisateur en haut à droite (avatar, libellé, rôle). Au clic : menu
+// contenant la déconnexion.
 
 import { useEffect, useRef, useState } from "react";
 import { deconnecter } from "@/lib/actions/auth";
@@ -48,12 +48,12 @@ export function MenuUtilisateur({
         onClick={() => setOuvert((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={ouvert}
-        className="vx-user text-left transition-colors hover:border-navy"
+        className="vx-user text-left"
       >
         <span className="vx-avatar" aria-hidden>
           {initiales(nom)}
         </span>
-        <span>
+        <span className="max-sm:hidden">
           <span className="vx-user__name block">{nom}</span>
           <span className="vx-user__meta block">
             {estAdmin ? "Administrateur" : "Métreur"}
@@ -70,7 +70,7 @@ export function MenuUtilisateur({
             <button
               type="submit"
               role="menuitem"
-              className="w-full rounded-[7px] px-3 py-2 text-left text-[13.5px] text-sub hover:bg-navy-tint hover:text-navy"
+              className="w-full rounded-[6px] px-3 py-2 text-left text-[13px] text-sub hover:bg-petrole-wash hover:text-petrole"
             >
               Se déconnecter
             </button>

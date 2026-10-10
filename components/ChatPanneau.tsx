@@ -60,7 +60,7 @@ function RenduTexte({ texte }: { texte: string }) {
                     {entetes.map((c, j) => (
                       <th
                         key={j}
-                        className="border-b border-navy-line px-2 py-1.5 text-left text-[12px] font-semibold uppercase tracking-[.04em] text-navy"
+                        className="border-b border-line px-2 py-1.5 text-left text-[12px] font-medium text-faint"
                       >
                         <EnLigne texte={c} />
                       </th>
@@ -73,7 +73,7 @@ function RenduTexte({ texte }: { texte: string }) {
                       {rang.map((c, k) => (
                         <td
                           key={k}
-                          className={`border-b border-navy-tint-border px-2 py-1.5 ${
+                          className={`border-b border-hairline px-2 py-1.5 ${
                             /^[\d\s,.€%/-]+$/.test(c.trim()) ? "mono text-right font-medium" : ""
                           }`}
                         >
@@ -234,7 +234,7 @@ export function ChatPanneau() {
   };
 
   return (
-    <div className="grid items-start gap-[22px] lg:grid-cols-[minmax(0,1fr)_330px]">
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
       <section className="vx-chat">
         <div className="vx-chat__head">
           <span>Assistant IA · base de prix</span>
@@ -262,34 +262,34 @@ export function ChatPanneau() {
                 {/* activité des outils, visible pendant l'exécution */}
                 {m.enCours && (m.activites?.length ?? 0) > 0 && (
                   <p className="mb-2 flex items-center gap-2 text-[12.5px] text-sub">
-                    <span className="vx-banner__dot !h-1.5 !w-1.5" aria-hidden />
+                    <span className="vx-dot vx-dot--pulse" aria-hidden />
                     {m.activites![m.activites!.length - 1]}
                   </p>
                 )}
                 {m.contenu && <RenduTexte texte={m.contenu} />}
                 {m.enCours && !m.contenu && (m.activites?.length ?? 0) === 0 && (
                   <p className="flex items-center gap-2 text-[12.5px] text-sub">
-                    <span className="vx-banner__dot !h-1.5 !w-1.5" aria-hidden />
+                    <span className="vx-dot vx-dot--pulse" aria-hidden />
                     Lecture de la base…
                   </p>
                 )}
                 {m.erreur && (
-                  <p className="rounded-[8px] border border-red/30 bg-red-bg px-3 py-2 text-[13.5px] text-red">
+                  <p className="rounded-[8px] bg-red-bg px-3 py-2 text-[13px] text-red">
                     {m.erreur}
                   </p>
                 )}
                 {/* sources */}
                 {m.sources && m.sources.length > 0 && (
-                  <div className="mt-3 border-t border-navy-line pt-2.5">
+                  <div className="mt-3 border-t border-hairline pt-2.5">
                     {m.sources.map((s, j) => (
-                      <p key={j} className="vx-bubble__tail !mt-0 !not-italic">
+                      <p key={j} className="vx-bubble__tail !mt-0">
                         {s.libelle} · n&nbsp;=&nbsp;{s.n}, {s.periode}
                         {s.filtres && <> · {s.filtres}</>}
                       </p>
                     ))}
                     <Link
                       href={`/?ouvrage=${m.sources[0].ouvrageId}`}
-                      className="vx-btn-ghost mt-2 inline-block"
+                      className="vx-link mt-2 inline-block !text-[13px]"
                     >
                       Voir dans le tableau →
                     </Link>
@@ -322,7 +322,7 @@ export function ChatPanneau() {
               rows={2}
               placeholder="Poser une question sur les prix…"
               aria-label="Poser une question sur les prix"
-              className="vx-input min-w-0 flex-1 resize-none !text-[15px] placeholder:text-faint"
+              className="vx-input min-w-0 flex-1 resize-none"
             />
             <button
               type="submit"
@@ -332,7 +332,7 @@ export function ChatPanneau() {
               {enCours ? "Recherche…" : "Envoyer"}
             </button>
           </div>
-          <p className="text-[12.5px] text-faint">
+          <p className="text-[12px] text-faint">
             Les prix cités sont actualisés à aujourd&apos;hui, sauf demande de
             prix bruts. Entrée pour envoyer, Maj+Entrée pour aller à la ligne.
           </p>
@@ -345,7 +345,7 @@ export function ChatPanneau() {
         <p className="vx-panel__desc mt-1">
           Un clic pose la question. Réponse chiffrée, sources jointes.
         </p>
-        <div className="mt-4 flex flex-col gap-2">
+        <div className="mt-4 flex flex-col gap-2.5">
           {SUGGESTIONS.map((s) => (
             <button
               key={s.question}

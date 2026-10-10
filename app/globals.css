@@ -2,27 +2,22 @@
 @import "./vision.css";
 
 /* ------------------------------------------------------------------
-   SODOBAT — design system Vision (voir design-system/README.md).
-   Neutre d'abord : fond canvas, panneaux surface bordés 1px, navy
-   seule teinte de marque. Pas d'ombre, pas de dégradé. Mono pour
-   tous les montants.
+   SODOBAT — design system Sodobat v1.0 (voir design-system/README.md).
+   Le chiffre d'abord, une seule couleur de marque (pétrole), des
+   filets à la place des ombres. Vert, rouge et ambre portent un sens,
+   jamais un décor. Geist partout ; Geist Mono pour les codes.
 
-   Les anciens noms (ink, sub, line, orange, ts…) restent utilisables
-   dans les composants : ils pointent sur les tokens Vision.
+   Les anciens noms (sub, line, green, ts…) restent utilisables dans
+   les composants : ils pointent sur les tokens du design system.
 ------------------------------------------------------------------- */
 
 :root {
-  /* alias historiques -> tokens Vision */
+  /* alias historiques -> tokens du design system */
   --sub: var(--ink-muted);
   --line: var(--border);
   --line-strong: var(--ink-disabled);
   --bg: var(--surface);
   --bg-soft: var(--surface-sunken);
-  --bg-hover: var(--surface-sunken);
-
-  /* l'accent devient la navy */
-  --orange: var(--navy);
-  --orange-soft: var(--navy-tint);
 
   --green: var(--positive);
   --green-bg: var(--positive-bg);
@@ -31,7 +26,7 @@
   --red: var(--negative);
   --red-bg: var(--negative-bg);
 
-  /* travaux supplémentaires : ton « vigilance » du design system */
+  /* travaux supplémentaires : ton « à vérifier » du design system */
   --ts: var(--warning);
   --ts-bg: var(--warning-bg);
 }
@@ -42,21 +37,21 @@
   --color-faint: var(--ink-faint);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-control: var(--border-control);
   --color-hairline: var(--hairline);
   --color-bg: var(--bg);
   --color-bg-soft: var(--bg-soft);
-  --color-bg-hover: var(--bg-hover);
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-sunken: var(--surface-sunken);
+  --color-surface-inset: var(--surface-inset);
   --color-track: var(--track);
-  --color-navy: var(--navy);
-  --color-navy-deep: var(--navy-deep);
-  --color-navy-tint: var(--navy-tint);
-  --color-navy-line: var(--navy-line);
-  --color-navy-tint-border: var(--navy-tint-border);
-  --color-orange: var(--orange);
-  --color-orange-soft: var(--orange-soft);
+  --color-petrole: var(--petrole);
+  --color-petrole-hover: var(--petrole-hover);
+  --color-petrole-soft: var(--petrole-soft);
+  --color-petrole-tint: var(--petrole-tint);
+  --color-petrole-wash: var(--petrole-wash);
+  --color-petrole-line: var(--petrole-line);
   --color-green: var(--green);
   --color-green-bg: var(--green-bg);
   --color-amber: var(--amber);
@@ -66,9 +61,8 @@
   --color-ts: var(--ts);
   --color-ts-bg: var(--ts-bg);
 
-  --font-titre: var(--font-grotesk), "Space Grotesk", system-ui, sans-serif;
-  --font-sans: var(--font-plex-sans), "IBM Plex Sans", system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: var(--font-geist), "Geist", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
 }
 
 @layer base {
@@ -84,15 +78,16 @@
     background: var(--canvas);
     color: var(--ink);
     font-family: var(--font-sans);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.5;
+    /* chiffres tabulaires partout : les colonnes de montants s'alignent */
+    font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--font-display);
     line-height: 1.15;
     letter-spacing: -0.01em;
   }
@@ -109,50 +104,53 @@
   a:focus-visible,
   [role="button"]:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2px solid var(--navy);
+    outline: 2px solid var(--petrole);
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  /* Tous les chiffres en mono tabulaire : alignement des décimales */
+  /* Geist Mono : réservé aux codes, numéros de pièce et identifiants.
+     Les montants restent en Geist, chiffres tabulaires. */
   .mono {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
 
-  /* Libellé uppercase (kicker / en-tête de colonne) */
+  /* Libellé discret (en-tête de colonne, légende de champ) */
   .cote-label {
-    font-family: var(--font-sans);
     font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-weight: 500;
     color: var(--ink-faint);
-    text-transform: uppercase;
     white-space: nowrap;
   }
 
-  /* Kicker navy (ancien « eyebrow ») */
+  /* Label de section : capitales pétrole */
   .eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--navy);
+    color: var(--petrole);
   }
 
-  /* Badge pilule */
+  /* Puce de statut ou d'écart */
   .badge {
     display: inline-flex;
-    font-size: 11.5px;
-    font-weight: 600;
-    line-height: 1.3;
-    padding: 3px 9px;
-    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 2px 8px;
+    border-radius: var(--radius-6);
     white-space: nowrap;
+  }
+  /* compteur : « 6 ouvertes » */
+  .badge--compteur {
+    font-weight: 600;
+    border-radius: var(--radius-10);
   }
   .b-green {
     background: var(--positive-bg);
@@ -167,15 +165,15 @@
     color: var(--negative);
   }
   .b-neutre {
-    background: var(--track);
-    color: var(--ink-muted);
+    background: var(--surface-inset);
+    color: var(--gris-700);
   }
-  .b-navy {
-    background: var(--navy-tint);
-    color: var(--navy);
+  .b-petrole {
+    background: var(--petrole-tint);
+    color: var(--petrole);
   }
 
-  /* Infobulle (components/Infobulle.tsx) */
+  /* Infobulle (components/Infobulle.tsx) : bordée, sans ombre */
   .vx-tip {
     position: absolute;
     top: calc(100% + 6px);
@@ -185,10 +183,9 @@
     flex-direction: column;
     gap: 4px;
     padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-9);
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius-8);
     background: var(--surface);
-    box-shadow: 0 8px 24px rgba(30, 34, 38, 0.12);
     font-size: 12.5px;
     line-height: 1.4;
     color: var(--ink);
@@ -205,15 +202,14 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 1px solid var(--navy-line);
-    background: var(--navy-tint);
-    color: var(--navy);
-    font: 700 10.5px/1 var(--font-display);
+    background: var(--petrole-tint);
+    color: var(--petrole);
+    font: 600 10.5px/1 var(--font-sans);
     font-style: italic;
   }
   .vx-tip__icone:hover {
-    background: var(--navy);
-    color: var(--on-navy);
+    background: var(--petrole);
+    color: var(--on-petrole);
   }
 
   /* ------------------------------------------------------------------
@@ -227,27 +223,19 @@
   }
   .vx-tab:hover {
     color: var(--ink);
-    border-color: var(--ink-disabled);
   }
   .vx-tab[aria-current="page"] {
-    border-color: var(--navy);
-    background: var(--navy);
-    color: var(--on-navy);
+    font-weight: 600;
+    color: var(--petrole);
+    border-bottom-color: var(--petrole);
   }
 
-  /* Chip ouvrant un menu (filtres) */
-  .vx-chip {
-    white-space: nowrap;
-  }
   .vx-chip:hover {
-    border-color: var(--navy);
-  }
-  .vx-chip[aria-pressed="true"]:hover {
-    background: var(--navy-deep);
+    border-color: var(--petrole);
   }
 
-  .vx-seg__opt:hover:not([aria-pressed="true"]) {
-    color: var(--ink-muted);
+  .vx-seg__opt:hover:not([aria-pressed="true"]):not([aria-current="page"]) {
+    color: var(--ink);
   }
   .vx-seg__opt:disabled {
     opacity: 0.4;
@@ -258,14 +246,8 @@
     background: var(--ink-disabled);
     cursor: default;
   }
-  .vx-btn-outline {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    text-decoration: none;
-  }
-  .vx-btn-outline:disabled {
+  .vx-btn-outline:disabled,
+  .vx-btn-ghost:disabled {
     opacity: 0.5;
     cursor: default;
   }
@@ -273,40 +255,44 @@
   /* Menu déroulant (filtres, utilisateur) : bordé, sans ombre */
   .vx-menu {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-10);
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius-8);
     padding: 6px;
   }
 
-  /* Tableau HTML au style vx-table */
+  /* Tableau HTML : en-tête sur surface douce, lignes séparées d'un filet */
   .vx-tbl {
     width: 100%;
     border-collapse: collapse;
   }
   .vx-tbl th {
-    padding: 0 10px 9px;
+    padding: 10px 14px;
+    background: var(--surface-sunken);
     border-bottom: 1px solid var(--border);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--ink-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
     text-align: left;
     white-space: nowrap;
   }
+  /* l'en-tête d'une colonne de montants s'aligne sur ses chiffres */
+  .vx-tbl th.vx-r {
+    text-align: right;
+  }
   .vx-tbl td {
-    padding: 10px;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--hairline);
     font-size: 14px;
     vertical-align: middle;
   }
-  .vx-tbl th:first-child,
-  .vx-tbl td:first-child {
-    padding-left: 4px;
+  /* dans un panneau à ras, les colonnes de bord s'alignent sur son titre */
+  .vx-panel--flush .vx-tbl th:first-child,
+  .vx-panel--flush .vx-tbl td:first-child {
+    padding-left: 24px;
   }
-  .vx-tbl th:last-child,
-  .vx-tbl td:last-child {
-    padding-right: 4px;
+  .vx-panel--flush .vx-tbl th:last-child,
+  .vx-panel--flush .vx-tbl td:last-child {
+    padding-right: 24px;
   }
   .vx-tbl tbody tr.vx-tbl__row {
     cursor: pointer;
@@ -316,7 +302,7 @@
   }
   .vx-tbl tbody tr[aria-selected="true"],
   .vx-tbl tbody tr[aria-selected="true"]:hover {
-    background: var(--navy-tint);
+    background: var(--petrole-wash);
   }
 }
 

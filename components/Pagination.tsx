@@ -18,12 +18,12 @@ export function Pagination({
   if (nbPages <= 1) return null;
 
   const fleche =
-    "flex h-8 min-w-8 items-center justify-center rounded-[8px] border border-line bg-surface px-2 text-[14px] text-sub transition-colors hover:border-navy hover:bg-navy-tint hover:text-navy disabled:pointer-events-none disabled:opacity-40";
+    "flex h-8 min-w-8 items-center justify-center rounded-[7px] border border-control bg-surface px-2 text-[14px] text-sub transition-colors hover:border-petrole hover:bg-petrole-wash hover:text-petrole disabled:pointer-events-none disabled:opacity-40";
 
   return (
     <nav
       aria-label="Pagination"
-      className="flex items-center justify-center gap-1.5 pt-5"
+      className="flex items-center justify-center gap-1.5 pt-4"
     >
       <button
         type="button"
@@ -45,10 +45,10 @@ export function Pagination({
               type="button"
               aria-current={n === page ? "page" : undefined}
               onClick={() => modifier({ page: String(n) }, true)}
-              className={`mono flex h-8 min-w-8 items-center justify-center rounded-[8px] border px-2 text-[13px] transition-colors ${
+              className={`flex h-8 min-w-8 items-center justify-center rounded-[7px] border px-2 text-[13px] transition-colors ${
                 n === page
-                  ? "border-navy bg-navy font-medium text-white"
-                  : "border-line bg-surface text-sub hover:border-navy hover:bg-navy-tint hover:text-navy"
+                  ? "border-petrole bg-petrole font-semibold text-white"
+                  : "border-control bg-surface text-sub hover:border-petrole hover:bg-petrole-wash hover:text-petrole"
               }`}
             >
               {n}

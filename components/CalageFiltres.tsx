@@ -38,7 +38,7 @@ export function CalageFiltres({
   useEffect(() => setSaisie(q), [q]);
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-1.5">
+    <div className="mb-4 flex flex-wrap items-center gap-2">
       <input
         type="search"
         value={saisie}
@@ -51,7 +51,7 @@ export function CalageFiltres({
         }}
         placeholder="Désignation ou ouvrage…"
         aria-label="Rechercher dans la file"
-        className="vx-input !min-w-[240px] !py-[7px]"
+        className="vx-input !min-w-[240px] !py-[7px] !text-[13px]"
       />
       {!sansLot && (
         <Pastille libelle="Lot" actif={Boolean(lot)} enfants={
@@ -85,7 +85,7 @@ export function CalageFiltres({
         <button
           type="button"
           onClick={() => modifier({ lot: null, methode: null, doc: null, q: null })}
-          className="vx-btn-ghost"
+          className="vx-link ml-1 !text-[13px]"
         >
           Effacer ({nbActifs})
         </button>

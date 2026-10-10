@@ -8,6 +8,7 @@ import { ouvrages, referentiel } from "@/lib/queries";
 import { LIBELLES_ZONES } from "@/lib/types";
 import { lireFiltres, lirePage, lireTri, nbFiltresActifs, type ParamsRecherche } from "@/lib/filtres-url";
 import { EnTete } from "@/components/EnTete";
+import { EtatBase } from "@/components/EtatBase";
 import { BarreRecherche } from "@/components/BarreRecherche";
 import { Filtres } from "@/components/Filtres";
 import { TableauPrix } from "@/components/TableauPrix";
@@ -56,10 +57,11 @@ export default async function PageTableau({
     <div className="min-h-screen">
       <EnTete actif="prix" synthese={synthese} />
 
-      <main className="vx-wrap pb-16 pt-[30px]">
+      <main className="vx-wrap pb-16 pt-7">
         <TitrePage
           titre="Le prix juste, déjà calculé."
           chapo="Vos devis et factures deviennent une grille de prix unitaires, recalculée à chaque pièce déposée. Chaque prix est une médiane réelle, avec son nombre d'occurrences, pas une estimation de métreur."
+          meta={<EtatBase synthese={synthese} />}
         />
 
         <RangeeKpi
@@ -90,6 +92,7 @@ export default async function PageTableau({
         />
 
         <Panneau
+          aRas
           titre="Grille des prix unitaires"
           meta={
             <span aria-live="polite">
@@ -102,16 +105,27 @@ export default async function PageTableau({
               <BoutonExport />
             </Suspense>
           }
+          pied={
+            <>
+              Prix de référence = médiane des <span className="mono">n</span> lignes
+              de devis validées (n ≥ 10 : fiable, 4 à 9 : à confirmer, moins :
+              peu de données). La réglette montre la fourchette ; ⓘ donne prix
+              bas, prix haut, moyenne, minimum et maximum ; le badge TS signale
+              des travaux supplémentaires, comptés à part. Cliquez sur une ligne
+              pour la fiche complète. Montants en € HT. Les ouvrages sans aucune
+              ligne sont masqués (filtre « Affichage »).
+            </>
+          }
           enfants={
             <>
               <Suspense>
-                <div className="flex flex-wrap items-center gap-2.5 border-b border-hairline pb-4">
+                <div className="flex flex-wrap items-center gap-2.5 border-b border-line px-6 py-3">
                   <BarreRecherche />
                   <Filtres nbActifs={nbFiltresActifs(filtres)} lots={lots} />
                 </div>
               </Suspense>
 
-              <div className="min-w-0 pt-3">
+              <div className="min-w-0">
                 <Suspense>
                   <TableauPrix
                     page={page}
@@ -122,15 +136,6 @@ export default async function PageTableau({
                   />
                 </Suspense>
               </div>
-              <p className="mt-3 text-[12.5px] text-faint">
-                Prix de référence = médiane des <span className="mono">n</span> lignes
-                de devis validées (n ≥ 10 : fiable, 4 à 9 : à confirmer, moins :
-                peu de données). La réglette montre la fourchette ; ⓘ donne prix
-                bas, prix haut, moyenne, minimum et maximum ; le badge TS signale
-                des travaux supplémentaires, comptés à part. Cliquez sur une ligne
-                pour la fiche complète. Montants en € HT. Les ouvrages sans aucune
-                ligne sont masqués (filtre « Affichage »).
-              </p>
             </>
           }
         />
@@ -139,7 +144,7 @@ export default async function PageTableau({
       {/* ---------- panneau latéral fiche ouvrage ---------- */}
       {ouvrageOuvert && (
         <div className="fixed inset-0 z-[80] flex justify-end">
-          <div className="hidden flex-1 bg-[rgba(30,34,38,.14)] sm:block" aria-hidden />
+          <div className="hidden flex-1 bg-[rgba(22,24,26,.18)] sm:block" aria-hidden />
           <aside
             role="dialog"
             aria-label="Fiche ouvrage"

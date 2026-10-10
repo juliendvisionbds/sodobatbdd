@@ -73,8 +73,8 @@ export function ComboboxOuvrage({
               type="button"
               onClick={() => choisir(o)}
               onMouseEnter={() => setSurligne(i)}
-              className={`w-full rounded-[7px] px-2.5 py-2 text-left text-[13.5px] ${
-                i === surligne ? "bg-navy-tint" : ""
+              className={`w-full rounded-[6px] px-2.5 py-2 text-left text-[13px] ${
+                i === surligne ? "bg-petrole-wash" : ""
               }`}
             >
               <span className="mono mr-2 text-[12px] text-sub">

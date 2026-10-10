@@ -40,7 +40,7 @@ export function FiltresHistorique({ nbActifs }: { nbActifs: number }) {
     depuis === `${a}-01-01` && jusqua === `${a}-12-31`;
 
   return (
-    <div className="flex min-w-0 flex-[1_1_auto] flex-wrap items-center gap-1.5">
+    <div className="flex min-w-0 flex-[1_1_auto] flex-wrap items-center gap-2">
       <Pastille
         libelle={depuis || jusqua ? "Période active" : "2024–2026"}
         actif={Boolean(depuis || jusqua)}
@@ -60,7 +60,7 @@ export function FiltresHistorique({ nbActifs }: { nbActifs: number }) {
             ))}
             <div className="mt-1.5 border-t border-hairline pt-2">
               <div className="grid grid-cols-2 gap-2 px-2.5 pb-1">
-                <label className="text-[12px] font-semibold text-sub">
+                <label className="text-[12px] font-medium text-faint">
                   Du
                   <input
                     type="date"
@@ -69,7 +69,7 @@ export function FiltresHistorique({ nbActifs }: { nbActifs: number }) {
                     className="vx-select mt-1 w-full !px-2 !py-1.5 !text-[13px]"
                   />
                 </label>
-                <label className="text-[12px] font-semibold text-sub">
+                <label className="text-[12px] font-medium text-faint">
                   Au
                   <input
                     type="date"
@@ -144,24 +144,24 @@ export function FiltresHistorique({ nbActifs }: { nbActifs: number }) {
         actif={Boolean(min || max)}
         enfants={
           <div className="grid grid-cols-2 gap-2 px-2.5 py-1.5">
-            <label className="text-[12px] font-semibold text-sub">
+            <label className="text-[12px] font-medium text-faint">
               Min (€ HT)
               <input
                 type="number"
                 min={0}
                 value={min}
                 onChange={(e) => modifier({ min: e.target.value || null })}
-                className="vx-select mono mt-1 w-full !px-2 !py-1.5 !text-[13px]"
+                className="vx-select mt-1 w-full !px-2 !py-1.5 !text-[13px]"
               />
             </label>
-            <label className="text-[12px] font-semibold text-sub">
+            <label className="text-[12px] font-medium text-faint">
               Max (€ HT)
               <input
                 type="number"
                 min={0}
                 value={max}
                 onChange={(e) => modifier({ max: e.target.value || null })}
-                className="vx-select mono mt-1 w-full !px-2 !py-1.5 !text-[13px]"
+                className="vx-select mt-1 w-full !px-2 !py-1.5 !text-[13px]"
               />
             </label>
           </div>
@@ -177,7 +177,7 @@ export function FiltresHistorique({ nbActifs }: { nbActifs: number }) {
               depuis: null, jusqua: null, min: null, max: null, doc: null,
             })
           }
-          className="vx-btn-ghost"
+          className="vx-link ml-1 !text-[13px]"
         >
           Effacer les filtres ({nbActifs})
         </button>

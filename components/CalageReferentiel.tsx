@@ -47,7 +47,7 @@ function ChampRecherche({
 
   return (
     <div className="relative">
-      <label className="text-[13px] font-semibold text-sub">
+      <label className="text-[12px] font-medium text-faint">
         {etiquette}
         <input
           type="search"
@@ -67,7 +67,7 @@ function ChampRecherche({
                   surChoix(o);
                   setResultats([]);
                 }}
-                className="w-full rounded-[7px] px-2.5 py-2 text-left text-[13.5px] hover:bg-navy-tint"
+                className="w-full rounded-[6px] px-2.5 py-2 text-left text-[13px] hover:bg-petrole-wash"
               >
                 <span className="mono mr-2 text-[12px] text-sub">
                   {o.code ?? "—"}
@@ -127,9 +127,9 @@ export function CalageReferentiel({
   };
 
   return (
-    <div className="flex flex-col gap-[22px]">
+    <div className="flex flex-col gap-5">
       {message && (
-        <p className="vx-insight vx-insight--pos !py-3 text-[14px] font-medium text-green">
+        <p className="vx-insight vx-insight--pos text-[13px] font-medium text-green">
           {message}
         </p>
       )}
@@ -143,7 +143,7 @@ export function CalageReferentiel({
             action={enregistrer}
             className="vx-detail mt-4 !flex-col !gap-3"
           >
-            <label className="text-[13px] font-semibold text-sub">
+            <label className="text-[12px] font-medium text-faint">
               Libellé devis (affiché partout)
               <input
                 name="libelle"
@@ -152,7 +152,7 @@ export function CalageReferentiel({
                 className="vx-input mt-1 w-full !min-w-0"
               />
             </label>
-            <label className="text-[13px] font-semibold text-sub">
+            <label className="text-[12px] font-medium text-faint">
               Libellé normalisé (rapprochement uniquement)
               <input
                 name="normalise"
@@ -161,7 +161,7 @@ export function CalageReferentiel({
               />
             </label>
             <div className="grid grid-cols-3 gap-3">
-              <label className="text-[13px] font-semibold text-sub">
+              <label className="text-[12px] font-medium text-faint">
                 Code
                 <input
                   name="code"
@@ -169,7 +169,7 @@ export function CalageReferentiel({
                   className="vx-input mono mt-1 w-full !min-w-0"
                 />
               </label>
-              <label className="text-[13px] font-semibold text-sub">
+              <label className="text-[12px] font-medium text-faint">
                 Lot
                 <select
                   name="lot"
@@ -184,7 +184,7 @@ export function CalageReferentiel({
                   ))}
                 </select>
               </label>
-              <label className="text-[13px] font-semibold text-sub">
+              <label className="text-[12px] font-medium text-faint">
                 Unité
                 <select
                   name="unite"
@@ -206,7 +206,7 @@ export function CalageReferentiel({
                   type="checkbox"
                   name="forfait"
                   defaultChecked={edite.estForfaitaire}
-                  className="accent-[var(--navy)]"
+                  className="accent-[var(--petrole)]"
                 />
                 Forfaitaire
               </label>
@@ -215,7 +215,7 @@ export function CalageReferentiel({
                   type="checkbox"
                   name="actif"
                   defaultChecked={edite.actif}
-                  className="accent-[var(--navy)]"
+                  className="accent-[var(--petrole)]"
                 />
                 Actif
               </label>
@@ -224,7 +224,7 @@ export function CalageReferentiel({
               <button
                 type="submit"
                 disabled={enCours}
-                className="vx-btn !px-4 !py-2 !text-[14px]"
+                className="vx-btn vx-btn--sm"
               >
                 {enCours ? "Enregistrement…" : "Enregistrer"}
               </button>
@@ -249,7 +249,7 @@ export function CalageReferentiel({
             type="button"
             disabled={!source || !cible || source.id === cible.id || enCours}
             onClick={() => setConfirmation(true)}
-            className="rounded-[9px] border border-red bg-surface px-4 py-2 text-[14px] font-semibold text-red transition-colors hover:bg-red-bg disabled:opacity-40"
+            className="rounded-[8px] border border-red bg-surface px-3.5 py-[7px] text-[13px] font-medium leading-[1.4] text-red transition-colors hover:bg-red-bg disabled:opacity-40"
           >
             {enCours ? "Fusion…" : "Fusionner…"}
           </button>

@@ -82,11 +82,11 @@ export function CalageSansOuvrage({
       <BandeauAction geste={geste} enCours={enCours} annuler={annuler} effacer={() => setGeste(null)} />
 
       {lignes.length === 0 ? (
-        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+        <p className="vx-panel py-16 text-center text-[14px] text-sub">
           Toutes les lignes à prix ont un ouvrage.
         </p>
       ) : (
-        <div className="vx-panel !p-0">
+        <div className="vx-panel vx-panel--flush">
           <table className="vx-tbl">
             <thead>
               <tr>
@@ -107,7 +107,7 @@ export function CalageSansOuvrage({
                     <span className="text-[12px] text-faint">
                       {l.unite ? LIBELLES_UNITES[l.unite] : (l.uniteBrute ?? "—")}
                       {(l.nbIdentiques ?? 1) > 1 && (
-                        <span className="badge b-navy ml-1.5" title="Même désignation dans d'autres pièces">
+                        <span className="badge b-petrole ml-1.5" title="Même désignation dans d'autres pièces">
                           ×{l.nbIdentiques} identiques
                         </span>
                       )}
@@ -149,7 +149,7 @@ export function CalageSansOuvrage({
                     type="checkbox"
                     checked={aussiIdentiques}
                     onChange={(e) => setAussiIdentiques(e.target.checked)}
-                    className="accent-[var(--navy)]"
+                    className="accent-[var(--petrole)]"
                   />
                   Rattacher aussi les {rattacher.nbIdentiques! - 1} autres lignes identiques
                 </label>

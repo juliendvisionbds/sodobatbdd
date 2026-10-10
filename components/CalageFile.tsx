@@ -110,7 +110,7 @@ export function CalageFile({
     return (
       <div>
         <BandeauAction geste={geste} enCours={enCours} annuler={annuler} effacer={() => setGeste(null)} />
-        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+        <p className="vx-panel py-16 text-center text-[14px] text-sub">
           File vide : tous les rattachements sont validés.
         </p>
       </div>
@@ -137,7 +137,7 @@ export function CalageFile({
           <p className="text-[15px] leading-snug">
             «&nbsp;{l.designationBrute}&nbsp;»
           </p>
-          <p className="mono mt-3 text-[13px]">
+          <p className="mt-3 text-[13px] font-medium">
             {l.unite ? LIBELLES_UNITES[l.unite] : (l.uniteBrute ?? "—")} ·{" "}
             {nombre(l.quantite)} · {nombre(l.pu)}&nbsp;€
             {l.estTs && (
@@ -158,7 +158,7 @@ export function CalageFile({
               </span>
             )}
             {l.lienPdf && (
-              <a href={l.lienPdf} target="_blank" rel="noreferrer" className="font-semibold text-navy underline-offset-2 hover:underline">
+              <a href={l.lienPdf} target="_blank" rel="noreferrer" className="font-medium text-petrole underline-offset-2 hover:underline">
                 Pièce d&apos;origine ↗
               </a>
             )}
@@ -172,7 +172,7 @@ export function CalageFile({
             </p>
           )}
           {Object.keys(l.attributs).length > 0 && (
-            <p className="mono mt-2 text-[12px] text-sub">
+            <p className="mt-2 text-[12px] text-sub">
               {Object.entries(l.attributs)
                 .map(([c, v]) => `${c} ${String(v)}`)
                 .join(" · ")}
@@ -184,11 +184,11 @@ export function CalageFile({
         <section className="bg-surface p-6">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="vx-table__group !p-0">Ouvrage proposé</h2>
-            <span className="mono text-[12px] text-sub">
+            <span className="text-[12px] text-faint">
               score {courant.score == null ? "—" : nombre(courant.score, 2)}
             </span>
           </div>
-          <p className="mono text-[13.5px] font-medium text-navy">{o.code ?? "—"}</p>
+          <p className="mono text-[13px] text-sub">{o.code ?? "—"}</p>
           <p className="mt-1 text-[15px] leading-snug">{o.libelleDevis}</p>
           <p className="mt-0.5 text-[12px] text-sub">{o.libelleNormalise}</p>
           <p className="mt-2 text-[12px] text-sub">
@@ -200,7 +200,7 @@ export function CalageFile({
             <p className="mt-2 text-[12.5px]">
               <Link
                 href={`/calage?q=${encodeURIComponent(o.libelleDevis)}`}
-                className="font-semibold text-navy underline-offset-2 hover:underline"
+                className="font-medium text-petrole underline-offset-2 hover:underline"
               >
                 {courant.nbMemeOuvrage} autre{courant.nbMemeOuvrage > 1 ? "s" : ""} ligne
                 {courant.nbMemeOuvrage > 1 ? "s" : ""} en attente sur cet ouvrage → valider en bloc
@@ -217,15 +217,15 @@ export function CalageFile({
                   type="button"
                   onClick={() => valider(c.ouvrage.id, c.ouvrage.libelleDevis)}
                   title={`Valider vers ${c.ouvrage.libelleDevis}`}
-                  className="flex w-full items-baseline justify-between gap-2 rounded-[7px] px-2 py-1.5 text-left text-[13.5px] hover:bg-navy-tint"
+                  className="flex w-full items-baseline justify-between gap-2 rounded-[6px] px-2 py-1.5 text-left text-[13px] hover:bg-petrole-wash"
                 >
                   <span className="truncate">
-                    <span className="mono mr-2 text-[11px] text-sub">
+                    <span className="mr-2 text-[12px] text-faint">
                       {i + 1}.
                     </span>
                     {c.ouvrage.code ?? c.ouvrage.libelleDevis}
                   </span>
-                  <span className="mono text-[12px] text-sub">
+                  <span className="text-[12px] text-faint">
                     {nombre(c.score, 2)}
                   </span>
                 </button>
@@ -289,7 +289,7 @@ function BoutonAction({
       disabled={desactive}
       className="vx-btn-outline !gap-2 !py-2"
     >
-      <kbd className="mono rounded-[6px] border border-navy-line bg-navy-tint px-1.5 py-0.5 text-[11.5px] text-navy">
+      <kbd className="mono rounded-[5px] border border-line bg-surface-sunken px-1.5 py-0.5 text-[11px] text-sub">
         {touche}
       </kbd>
       {libelle}

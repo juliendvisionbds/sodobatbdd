@@ -13,7 +13,7 @@ export function TableauFrais({ lignes }: { lignes: FraisResume[] }) {
 
   if (lignes.length === 0) {
     return (
-      <p className="py-16 text-center text-[15px] text-sub">
+      <p className="px-6 py-16 text-center text-[14px] text-sub">
         Aucun ouvrage forfaitaire pour le moment.
       </p>
     );
@@ -48,11 +48,11 @@ export function TableauFrais({ lignes }: { lignes: FraisResume[] }) {
               aria-label={`Ouvrir la fiche : ${l.ouvrage.libelleDevis}`}
               className="vx-tbl__row"
             >
-              <td><span className="mono text-[12px] text-faint">{l.ouvrage.lotCode ?? "—"}</span></td>
+              <td><span className="mono text-[13px] text-sub">{l.ouvrage.lotCode ?? "—"}</span></td>
               <td><span className="line-clamp-2 text-[14px] leading-snug">{l.ouvrage.libelleDevis}</span></td>
               <td className="vx-cell-amount">
                 {s ? (
-                  <span className="mono text-[13.5px] font-medium text-navy">{nombre(s.pctMedianChantier, 1)} %</span>
+                  <span className="text-[14px] font-semibold text-petrole">{nombre(s.pctMedianChantier, 1)} %</span>
                 ) : (
                   <span className="text-faint">—</span>
                 )}
@@ -61,7 +61,7 @@ export function TableauFrais({ lignes }: { lignes: FraisResume[] }) {
               <td className="vx-cell-amount">{s ? <EtiquetteN n={s.n} /> : <span className="text-faint">—</span>}</td>
               <td className="vx-cell-amount">
                 {s ? (
-                  <span className="mono text-[12.5px] text-sub">{euro(s.chantierMin)} – {euro(s.chantierMax)}</span>
+                  <span className="text-faint">{euro(s.chantierMin)} – {euro(s.chantierMax)}</span>
                 ) : (
                   <span className="text-faint">—</span>
                 )}

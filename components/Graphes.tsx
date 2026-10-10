@@ -27,7 +27,7 @@ function Triangle(props: { cx?: number; cy?: number }) {
   return (
     <path
       d={`M ${cx} ${cy - 4.5} L ${cx + 4.5} ${cy + 3.5} L ${cx - 4.5} ${cy + 3.5} Z`}
-      fill="var(--ts)"
+      fill="var(--warning-dot)"
       stroke="var(--bg)"
       strokeWidth={0.5}
     />
@@ -37,7 +37,7 @@ function Triangle(props: { cx?: number; cy?: number }) {
 function Rond(props: { cx?: number; cy?: number }) {
   const { cx = 0, cy = 0 } = props;
   return (
-    <circle cx={cx} cy={cy} r={3.5} fill="var(--navy)" fillOpacity={0.85} />
+    <circle cx={cx} cy={cy} r={3.5} fill="var(--petrole)" fillOpacity={0.85} />
   );
 }
 
@@ -75,8 +75,8 @@ function InfoBulle({
   const p = payload?.[0]?.payload;
   if (!active || !p || p.y === undefined || !("estTs" in p)) return null;
   return (
-    <div className="rounded-[8px] border border-line bg-surface px-2.5 py-1.5 text-[12px]">
-      <div className="mono font-medium text-navy">{euro(p.y)}</div>
+    <div className="rounded-[8px] border border-control bg-surface px-2.5 py-1.5 text-[12px]">
+      <div className="font-semibold text-petrole">{euro(p.y)}</div>
       <div className="text-sub">
         {formatX(p.x)} {p.estTs ? "· TS" : ""}
       </div>
@@ -106,8 +106,8 @@ function Nuage({
           type="number"
           domain={domaineX ?? ["dataMin", "dataMax"]}
           tickFormatter={formatX}
-          tick={{ fontSize: 10, fill: "var(--ink-faint)", fontFamily: "var(--font-mono)" }}
-          stroke="var(--border)"
+          tick={{ fontSize: 11, fill: "var(--ink-faint)", fontFamily: "var(--font-sans)" }}
+          stroke="var(--axis)"
           tickLine={false}
         />
         <YAxis
@@ -115,8 +115,8 @@ function Nuage({
           type="number"
           domain={["auto", "auto"]}
           tickFormatter={(v: number) => String(Math.round(v))}
-          tick={{ fontSize: 10, fill: "var(--ink-faint)", fontFamily: "var(--font-mono)" }}
-          stroke="var(--border)"
+          tick={{ fontSize: 11, fill: "var(--ink-faint)", fontFamily: "var(--font-sans)" }}
+          stroke="var(--axis)"
           tickLine={false}
           width={42}
         />
@@ -128,7 +128,7 @@ function Nuage({
           <Line
             data={ligneTendance}
             dataKey="tendance"
-            stroke="var(--navy-soft)"
+            stroke="var(--petrole-soft)"
             strokeDasharray="4 3"
             dot={false}
             isAnimationActive={false}

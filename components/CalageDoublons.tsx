@@ -19,13 +19,13 @@ function Cote({ o, role }: { o: Ouvrage & { nbLignes: number }; role: string }) 
   return (
     <div className="min-w-0 flex-1">
       <div className="cote-label mb-1">{role}</div>
-      <div className="text-[14.5px] font-semibold leading-snug">{o.libelleDevis}</div>
+      <div className="text-[14px] font-semibold leading-snug">{o.libelleDevis}</div>
       <div className="mt-0.5 text-[12.5px] text-sub">
         <span className="mono">{o.code ?? "—"}</span>
         {o.lotCode ? ` · ${o.lotCode}` : ""}
         {o.unite ? ` · ${LIBELLES_UNITES[o.unite]}` : ""}
         {" · "}
-        <span className="mono">{o.nbLignes}</span> ligne{o.nbLignes > 1 ? "s" : ""}
+        {o.nbLignes} ligne{o.nbLignes > 1 ? "s" : ""}
       </div>
       <div className="mt-0.5 truncate text-[12px] text-faint" title={o.libelleNormalise}>
         {o.libelleNormalise}
@@ -89,7 +89,7 @@ export function CalageDoublons({ fusions: initial }: { fusions: FusionProposee[]
       <BandeauAction geste={geste} enCours={enCours} annuler={annuler} effacer={() => setGeste(null)} />
 
       {fusions.length === 0 ? (
-        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+        <p className="vx-panel py-16 text-center text-[14px] text-sub">
           Aucun doublon proposé pour l&apos;instant.
         </p>
       ) : (
@@ -104,7 +104,7 @@ export function CalageDoublons({ fusions: initial }: { fusions: FusionProposee[]
                 <Cote o={cible} role="Cible (conserve l'historique)" />
                 <div className="flex w-full flex-wrap items-center gap-2 border-t border-hairline pt-3 xl:w-auto xl:border-0 xl:pt-0">
                   <span
-                    className="mono text-[12.5px] text-sub"
+                    className="text-[13px] text-sub"
                     title={f.methode === "embedding" ? "Proximité de sens (embeddings)" : "Similarité des libellés (trigrammes)"}
                   >
                     {f.score == null ? "—" : nombre(f.score, 2)}
@@ -139,7 +139,7 @@ export function CalageDoublons({ fusions: initial }: { fusions: FusionProposee[]
                     type="button"
                     disabled={enCours}
                     onClick={() => setAConfirmer(f)}
-                    className="vx-btn !px-4 !py-2 !text-[14px]"
+                    className="vx-btn vx-btn--sm"
                   >
                     Fusionner
                   </button>

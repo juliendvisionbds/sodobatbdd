@@ -53,7 +53,7 @@ export function ReglettePrix({
   const hRegle = detaillee ? 18 : H;
   const yMilieu = hRegle / 2;
 
-  const encre = ts ? "var(--ts)" : "var(--navy)";
+  const encre = ts ? "var(--ts)" : "var(--petrole)";
   const trait = "var(--line-strong)";
 
   const v = valeurs(stats, indexe);
@@ -82,7 +82,7 @@ export function ReglettePrix({
             textAnchor="middle"
             fontSize={10}
             fill="var(--ink-faint)"
-            fontFamily="var(--font-plex-mono), monospace"
+            fontFamily="var(--font-sans)"
           >
             {euro(v.mediane)}
           </text>
@@ -117,7 +117,7 @@ export function ReglettePrix({
             textAnchor="middle"
             fontSize={10}
             fill="var(--ink-faint)"
-            fontFamily="var(--font-plex-mono), monospace"
+            fontFamily="var(--font-sans)"
           >
             {euro(v.mediane)}
           </text>
@@ -209,7 +209,7 @@ export function ReglettePrix({
         <g
           fontSize={10}
           fill="var(--ink-faint)"
-          fontFamily="var(--font-plex-mono), monospace"
+          fontFamily="var(--font-sans)"
         >
           <text x={Math.max(x(v.min), 18)} y={H - 2} textAnchor="middle">
             {euro(v.min)}
@@ -247,7 +247,7 @@ export function ReglettePrix({
   );
 }
 
-/** Le n= écrit en toutes lettres, mono. Ton « vigilance » quand n = 1. */
+/** Le n= écrit en toutes lettres. Ton « à vérifier » quand n = 1. */
 export function EtiquetteN({ n }: { n: number }) {
   const lecture =
     n >= 10
@@ -259,7 +259,7 @@ export function EtiquetteN({ n }: { n: number }) {
           : "moins de 4 lignes : peu de données";
   return (
     <span
-      className={`mono text-[11.5px] ${n === 1 ? "font-medium" : ""}`}
+      className={`text-[12px] ${n === 1 ? "font-medium" : ""}`}
       style={{ color: n === 1 ? "var(--warning)" : "var(--ink-faint)" }}
       title={`n = nombre de lignes de devis retenues. ${lecture}.`}
     >
@@ -294,8 +294,8 @@ export function CellulePrix({
   return (
     <div className="flex items-center gap-2">
       <span
-        className="mono w-[80px] shrink-0 text-right text-[13.5px] font-medium"
-        style={{ color: estTsSeul ? "var(--ts)" : "var(--navy)" }}
+        className="w-[84px] shrink-0 text-right text-[14px] font-semibold"
+        style={{ color: estTsSeul ? "var(--ts)" : "var(--petrole)" }}
       >
         {euro(v.mediane)}
       </span>

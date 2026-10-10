@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { referentiel } from "@/lib/queries";
 import { EnTete } from "@/components/EnTete";
+import { EtatBase } from "@/components/EtatBase";
 import { CalageFile } from "@/components/CalageFile";
 import { CalageFiltres } from "@/components/CalageFiltres";
 import { CalageParOuvrage } from "@/components/CalageParOuvrage";
@@ -44,9 +45,10 @@ export default async function PageCalage({
   const filtres = lireFiltresCalage(params);
   const page = lirePage(params);
 
-  const [prog, lots] = await Promise.all([
+  const [prog, lots, synthese] = await Promise.all([
     referentiel.progression(),
     referentiel.lotsAPlat(),
+    referentiel.synthese(),
   ]);
   const pct =
     prog.lignesTotal > 0
@@ -65,12 +67,12 @@ export default async function PageCalage({
     return (
       <Link
         href={chaine ? `/calage?${chaine}` : "/calage"}
-        className="vx-chip inline-flex items-center gap-2"
-        aria-pressed={onglet === cle}
+        className="vx-seg__opt"
+        aria-current={onglet === cle ? "page" : undefined}
       >
         {libelle}
         {badge != null && badge > 0 && (
-          <span className={`badge ${ton} !px-2 !py-0`}>{entier(badge)}</span>
+          <span className={`badge badge--compteur ${ton} !py-0`}>{entier(badge)}</span>
         )}
       </Link>
     );
@@ -80,12 +82,13 @@ export default async function PageCalage({
 
   return (
     <div className="min-h-screen">
-      <EnTete actif="calage" />
+      <EnTete actif="calage" synthese={synthese} />
 
-      <main className="vx-wrap pb-16 pt-[30px]">
+      <main className="vx-wrap pb-16 pt-7">
         <TitrePage
           titre="Chaque ligne, rattachée au bon ouvrage."
           chapo="Validez par ouvrage quand la proposition est bonne pour toutes les lignes, ligne à ligne pour les cas ambigus. Z annule le dernier geste. Chaque validation alimente immédiatement les prix du tableau."
+          meta={<EtatBase synthese={synthese} />}
         />
 
         <RangeeKpi
@@ -131,8 +134,8 @@ export default async function PageCalage({
           }
         />
 
-        <nav className="vx-chips mb-4" aria-label="Sections du calage">
-          {lien("ouvrages", "Par ouvrage", prog.rattachementsEnAttente, "b-navy")}
+        <nav className="vx-seg mb-4" aria-label="Sections du calage">
+          {lien("ouvrages", "Par ouvrage", prog.rattachementsEnAttente, "b-petrole")}
           {lien("file", "Ligne à ligne")}
           {lien("documents", "Documents à revoir", prog.documentsARevoir)}
           {lien("doublons", "Doublons", prog.doublonsProposes, "b-amber")}

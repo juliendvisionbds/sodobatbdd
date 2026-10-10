@@ -40,7 +40,7 @@ export function TableLignesHistorique({
               key={l.id}
               className={`transition-colors hover:bg-bg-soft ${l.excluAgregats ? "text-sub" : ""}`}
             >
-              <td className="mono whitespace-nowrap text-[13px] text-sub">
+              <td className="whitespace-nowrap text-[13px] text-faint">
                 {fmtDate(l.date)}
               </td>
               <td className="max-w-[170px] truncate font-medium" title={l.client ?? undefined}>
@@ -59,7 +59,7 @@ export function TableLignesHistorique({
                 {l.ouvrage && (
                   <Link
                     href={`/?ouvrage=${l.ouvrage.id}`}
-                    className="text-[12px] font-medium text-navy underline-offset-2 hover:underline"
+                    className="text-[12px] font-medium text-petrole underline-offset-2 hover:underline"
                   >
                     {l.ouvrage.libelleDevis}
                   </Link>

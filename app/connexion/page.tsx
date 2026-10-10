@@ -17,18 +17,18 @@ export default async function PageConnexion({
           <Image
             src="/sodobat.jpeg"
             alt="Sodobat"
-            width={46}
-            height={46}
+            width={32}
+            height={32}
             priority
-            className="h-[46px] w-[46px] shrink-0 rounded-[9px] object-cover"
+            className="h-8 w-8 shrink-0 rounded-[8px] object-cover"
           />
-          <div>
-            <div className="vx-brand__title">Base de données intelligente</div>
-            <div className="vx-brand__sub">Sodobat · prix d&apos;ouvrages</div>
+          <div className="leading-[1.15]">
+            <div className="vx-brand__title">Sodobat</div>
+            <div className="vx-brand__sub">Base de données intelligente</div>
           </div>
         </div>
         <div className="vx-panel">
-          <h1 className="vx-panel__title">Accès à la base.</h1>
+          <h1 className="vx-panel__title !text-[22px] tracking-[-.02em]">Accès à la base.</h1>
           <p className="vx-panel__desc mb-5 mt-1">
             Saisissez le code d&apos;accès qui vous a été remis.
           </p>
@@ -36,7 +36,7 @@ export default async function PageConnexion({
             <FormulaireConnexion suite={suite ?? "/"} />
           </Suspense>
         </div>
-        <p className="mt-4 text-center text-[12.5px] text-faint">
+        <p className="mt-4 text-center text-[12px] text-faint">
           Un code par personne, remis par la direction.
         </p>
       </div>

@@ -35,7 +35,7 @@ export function ImportRelance({
             }
           })
         }
-        className="vx-btn-outline !px-2.5 !py-1 !text-[12.5px]"
+        className="vx-btn-ghost"
       >
         {enCours ? "Relance…" : libelle}
       </button>

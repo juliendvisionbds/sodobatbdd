@@ -45,7 +45,7 @@ export function BarreRecherche({
       <svg
         aria-hidden
         viewBox="0 0 20 20"
-        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint"
+        className="pointer-events-none absolute left-3 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-[var(--gris-400)]"
         fill="none"
         stroke="currentColor"
         strokeWidth={1.8}
@@ -60,9 +60,9 @@ export function BarreRecherche({
         onChange={(e) => changer(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="vx-input w-full !pl-10 !pr-12 placeholder:text-faint"
+        className="vx-input w-full !py-[7px] !pl-9 !pr-12 !text-[13px]"
       />
-      <kbd className="mono pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-[6px] border border-line bg-surface px-1.5 py-0.5 text-[10.5px] text-faint sm:block">
+      <kbd className="mono pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-[5px] border border-line bg-surface-sunken px-1.5 py-0.5 text-[10.5px] text-faint sm:block">
         ⌘K
       </kbd>
     </div>

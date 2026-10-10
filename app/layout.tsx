@@ -1,25 +1,19 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-// Polices du design system Vision : Space Grotesk (titres, chiffres
-// vedettes), IBM Plex Sans (texte), IBM Plex Mono (montants).
-const grotesk = Space_Grotesk({
+// Polices du design system Sodobat : Geist (interface, titres, chiffres),
+// Geist Mono (codes, numéros de pièce, identifiants).
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["700"],
-  variable: "--font-grotesk",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-geist",
 });
 
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex-sans",
-});
-
-const plexMono = IBM_Plex_Mono({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
-  variable: "--font-plex-mono",
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
@@ -35,7 +29,7 @@ export default function RootLayout({
     // variables de police sur <html> : les tokens de :root les lisent
     <html
       lang="fr"
-      className={`${grotesk.variable} ${plexSans.variable} ${plexMono.variable}`}
+      className={`${geist.variable} ${geistMono.variable}`}
     >
       <body>{children}</body>
     </html>

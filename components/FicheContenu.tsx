@@ -50,7 +50,7 @@ export interface DonneesFiche {
 
 function Section({ titre, enfants }: { titre: string; enfants: React.ReactNode }) {
   return (
-    <section className="border-t border-hairline px-6 py-5">
+    <section className="border-t border-line px-6 py-5">
       {titre && <h3 className="vx-table__group mb-3 !p-0">{titre}</h3>}
       {enfants}
     </section>
@@ -140,7 +140,7 @@ export function FicheContenu(d: DonneesFiche) {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       {/* ---------- en-tête ---------- */}
-      <div className="flex items-center justify-between gap-3 border-b border-hairline px-6 py-3">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-6 py-3">
         <button
           type="button"
           onClick={fermer}
@@ -150,9 +150,8 @@ export function FicheContenu(d: DonneesFiche) {
           ✕ Fermer
         </button>
         {d.positionListe !== null && (
-          <span className="mono text-[12px] text-faint">
-            {d.positionListe} / {d.totalListe}{" "}
-            <span className="font-sans text-[11.5px]">· ↑↓ pour naviguer</span>
+          <span className="text-[12px] text-faint">
+            {d.positionListe} / {d.totalListe} · ↑↓ pour naviguer
           </span>
         )}
       </div>
@@ -162,7 +161,7 @@ export function FicheContenu(d: DonneesFiche) {
           {d.ouvrage.lotLibelle ?? "Sans lot"}
           {d.ouvrage.code ? ` · ${d.ouvrage.code}` : ""}
         </div>
-        <h2 className="vx-panel__title mt-1.5 !text-[21px] leading-snug">
+        <h2 className="vx-panel__title mt-1.5 !text-[22px] leading-snug tracking-[-.02em]">
           {d.ouvrage.libelleDevis}
         </h2>
 
@@ -176,15 +175,15 @@ export function FicheContenu(d: DonneesFiche) {
                     <div className="vx-kpi__label">Prix médian</div>
                     <div
                       className="vx-kpi__value !mt-1"
-                      style={{ color: onglet === "ts" ? "var(--ts)" : "var(--navy)" }}
+                      style={{ color: onglet === "ts" ? "var(--ts)" : "var(--petrole)" }}
                     >
                       {euro(v.mediane)}
-                      <span className="ml-1.5 font-sans text-[14px] font-normal tracking-normal text-sub">
+                      <span className="ml-1.5 text-[16px] font-medium tracking-normal text-faint">
                         / {unite}
                       </span>
                     </div>
                     {actif && (
-                      <div className="mono mt-2 text-[12px] text-faint">
+                      <div className="mt-2 text-[12px] text-faint">
                         n={actif.n} · {actif.nChantiers} chantier
                         {actif.nChantiers > 1 ? "s" : ""}
                         {actif.premiereOccurrence && actif.derniereOccurrence && (
@@ -253,13 +252,11 @@ export function FicheContenu(d: DonneesFiche) {
               <div className="vx-insight vx-insight--warn mt-4">
                 <div className="vx-insight__kicker">Travaux supplémentaires</div>
                 <div className="vx-insight__title">
-                  <span className="mono">
-                    {euro(d.indexe ? d.ts.medianeIndexee : d.ts.mediane)}
-                  </span>{" "}
+                  {euro(d.indexe ? d.ts.medianeIndexee : d.ts.mediane)}{" "}
                   en TS, soit {deltaTs > 0 ? "+" : ""}
                   {deltaTs} % vs travaux normaux
                 </div>
-                <div className="vx-insight__body mono">n={d.ts.n}</div>
+                <div className="vx-insight__body">n={d.ts.n}</div>
               </div>
             )}
           </div>
@@ -273,13 +270,13 @@ export function FicheContenu(d: DonneesFiche) {
             ) : (
               d.forfaits.map((f) => (
                 <div key={String(f.estTs)} className="mb-3">
-                  <div className="vx-kpi__value !mt-0 text-navy">
+                  <div className="vx-kpi__value !mt-0 text-petrole">
                     {nombre(f.pctMedianChantier, 1)} %
-                    <span className="ml-1.5 font-sans text-[14px] font-normal tracking-normal text-sub">
+                    <span className="ml-1.5 text-[16px] font-medium tracking-normal text-faint">
                       du montant de chantier
                     </span>
                   </div>
-                  <div className="mono mt-2 text-[12px] text-faint">
+                  <div className="mt-2 text-[12px] text-faint">
                     {f.estTs ? "TS · " : ""}n={f.n} · montant médian {euro(f.montantMedian)} ·
                     chantiers de {euro(f.chantierMin)} à {euro(f.chantierMax)}
                   </div>
@@ -308,10 +305,10 @@ export function FicheContenu(d: DonneesFiche) {
                       <td className="vx-cell-key py-2">
                         {vz ? euro(vz.mediane) : "—"}
                       </td>
-                      <td className="mono py-2 pl-3 text-right text-[11.5px] text-faint">
+                      <td className="py-2 pl-3 text-right text-[12px] text-faint">
                         n={z.stats?.n ?? 0}
                       </td>
-                      <td className="mono py-2 pl-3 text-right text-[12px] font-medium text-sub">
+                      <td className="py-2 pl-3 text-right text-[12px] font-medium text-sub">
                         {z.ecartGlobal !== null
                           ? `${z.ecartGlobal > 0 ? "+" : "−"}${nombre(Math.abs(z.ecartGlobal), 0)} %`
                           : ""}
@@ -326,7 +323,7 @@ export function FicheContenu(d: DonneesFiche) {
             </table>
             {docsZoneDeduite > 0 && (
               <p className="mt-3 flex items-center gap-2 text-[12.5px]" style={{ color: "var(--warning)" }}>
-                <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-[var(--warning)]" />
+                <span aria-hidden className="h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--warning-dot)]" />
                 Zone déduite de l&apos;adresse client pour {docsZoneDeduite} document
                 {docsZoneDeduite > 1 ? "s" : ""}.
               </p>
@@ -359,14 +356,14 @@ export function FicheContenu(d: DonneesFiche) {
             {d.effetQuantite.seuil && (
               <p className="mt-2 text-[14px]">
                 Au-delà de{" "}
-                <span className="mono">
+                <span className="font-medium">
                   {nombre(d.effetQuantite.seuil.seuil, 0)} {unite}
                 </span>
                 , le prix médian descend à{" "}
-                <span className="mono font-medium text-navy">
+                <span className="font-semibold text-petrole">
                   {euro(d.effetQuantite.seuil.medianeAuDessus)}
                 </span>{" "}
-                <span className="mono text-[11.5px] text-faint">
+                <span className="text-[12px] text-faint">
                   (n={d.effetQuantite.seuil.nAuDessus})
                 </span>
                 .
@@ -385,11 +382,11 @@ export function FicheContenu(d: DonneesFiche) {
                 <button
                   type="button"
                   onClick={() => modifier({ ouvrage: c.ouvrage.id }, true)}
-                  className="truncate text-left font-medium text-navy underline-offset-2 hover:underline"
+                  className="truncate text-left font-medium text-petrole underline-offset-2 hover:underline"
                 >
                   {c.ouvrage.libelleDevis}
                 </button>
-                <span className="mono shrink-0 text-[12px] text-faint">
+                <span className="shrink-0 text-[12px] text-faint">
                   {Math.round(c.taux * 100)} % des chantiers
                   {c.ratioQuantite !== null &&
                     ` · ≈${nombre(c.ratioQuantite, c.ratioQuantite % 1 === 0 ? 0 : 1)} par ${unite}`}
@@ -407,7 +404,7 @@ export function FicheContenu(d: DonneesFiche) {
             type="button"
             onClick={() => setLignesOuvertes((o) => !o)}
             aria-expanded={lignesOuvertes}
-            className="vx-table__group flex w-full items-center gap-2 !p-0 hover:text-navy-deep"
+            className="vx-table__group flex w-full items-center gap-2 !p-0 hover:text-petrole-hover"
           >
             <span aria-hidden className="vx-chev inline-block" style={{ transform: lignesOuvertes ? "rotate(90deg)" : "none" }}>▸</span>
             {d.lignes.length} ligne{d.lignes.length > 1 ? "s" : ""} source
@@ -441,7 +438,7 @@ export function FicheContenu(d: DonneesFiche) {
                           l.excluAgregats ? "opacity-45" : ""
                         }`}
                       >
-                        <td className="mono py-2 pr-2 whitespace-nowrap">
+                        <td className="py-2 pr-2 whitespace-nowrap">
                           {fmtDate(l.date)}
                           {l.statutDocument === "a_revoir" && (
                             <span
@@ -458,13 +455,13 @@ export function FicheContenu(d: DonneesFiche) {
                             <span className="badge b-amber ml-1.5 !px-1.5 !py-0 !text-[10.5px]">TS</span>
                           )}
                         </td>
-                        <td className="mono py-2 pr-2 text-right whitespace-nowrap">
+                        <td className="py-2 pr-2 text-right whitespace-nowrap">
                           {nombre(l.quantite, 0)} {l.uniteBrute ?? ""}
                         </td>
-                        <td className="mono py-2 pr-2 text-right whitespace-nowrap">
+                        <td className="py-2 pr-2 text-right whitespace-nowrap">
                           {euro(pu)}
                           {horsNorme && !l.excluAgregats && (
-                            <span className="ml-1 text-[11px] font-sans font-semibold" style={{ color: "var(--negative)" }}
+                            <span className="ml-1 text-[11px] font-semibold" style={{ color: "var(--negative)" }}
                               title="À plus de 2 écarts types de la médiane">
                               ↑ hors norme
                             </span>
@@ -473,7 +470,7 @@ export function FicheContenu(d: DonneesFiche) {
                         <td className="py-2 text-right whitespace-nowrap">
                           {l.lienPdf ? (
                             <a href={l.lienPdf} target="_blank" rel="noreferrer"
-                              className="mr-2 text-[12px] font-semibold text-navy underline-offset-2 hover:underline">
+                              className="mr-2 text-[12px] font-medium text-petrole underline-offset-2 hover:underline">
                               Pièce
                             </a>
                           ) : (
@@ -486,7 +483,7 @@ export function FicheContenu(d: DonneesFiche) {
                               type="button"
                               disabled={enCours}
                               onClick={() => reintegrer(l)}
-                              className="rounded-[6px] border border-line bg-surface px-2 py-0.5 text-[11.5px] font-semibold text-navy hover:border-navy hover:bg-navy-tint"
+                              className="rounded-[6px] border border-control bg-surface px-2 py-0.5 text-[12px] font-medium text-petrole hover:border-petrole hover:bg-petrole-wash"
                               title={l.motifExclusion ?? "Réintégrer dans les statistiques"}
                             >
                               réintégrer
@@ -500,7 +497,7 @@ export function FicheContenu(d: DonneesFiche) {
                                 setMotifExclusion("");
                               }}
                               aria-label="Écarter cette ligne des statistiques"
-                              className="rounded-[6px] border border-line bg-surface px-1.5 py-0.5 text-[12px] text-sub hover:border-red hover:bg-red-bg hover:text-red"
+                              className="rounded-[6px] border border-control bg-surface px-1.5 py-0.5 text-[12px] text-sub hover:border-red hover:bg-red-bg hover:text-red"
                               title="Écarter des statistiques (motif demandé)"
                             >
                               ⊘
@@ -530,7 +527,7 @@ export function FicheContenu(d: DonneesFiche) {
                                 aria-label="Motif d'exclusion"
                                 className="vx-input flex-1 !min-w-[200px] !py-1.5 !text-[13px]"
                               />
-                              <button type="submit" disabled={enCours} className="vx-btn-outline !py-1.5 !text-[12.5px]">
+                              <button type="submit" disabled={enCours} className="vx-btn-outline !py-1.5">
                                 Écarter
                               </button>
                               <button type="button" onClick={() => setExclusionEnCours(null)} className="vx-btn-ghost">

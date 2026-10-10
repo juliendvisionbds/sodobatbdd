@@ -67,28 +67,28 @@ export function CalageHorsPerimetre({ page }: { page: Page<LigneCalage> }) {
 
   return (
     <div>
-      <p className="vx-insight !py-3 mb-4 text-[13.5px]">
+      <p className="vx-insight mb-4 text-[13px]">
         L&apos;IA a écarté ces lignes comme administratives ou illisibles. Une
         prestation réelle (même d&apos;un autre corps d&apos;état) doit être
         <strong> réintégrée</strong> : elle rejoint la file « Sans ouvrage ».
       </p>
       {message && (
-        <p className="vx-insight vx-insight--pos mb-4 !py-3 text-[14px] font-medium text-green">{message}</p>
+        <p className="vx-insight vx-insight--pos mb-4 text-[13px] font-medium text-green">{message}</p>
       )}
 
       {lignes.length === 0 ? (
-        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+        <p className="vx-panel py-16 text-center text-[14px] text-sub">
           Aucune ligne écartée à relire.
         </p>
       ) : (
-        <div className="vx-panel !p-0">
+        <div className="vx-panel vx-panel--flush">
           <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-3">
             <span className="text-[13px] text-sub">{selection.size} sélectionnée{selection.size > 1 ? "s" : ""}</span>
             <span className="flex-1" />
             <button type="button" disabled={enCours || selection.size === 0} onClick={() => confirmer()} className="vx-btn-outline disabled:opacity-40">
               Confirmer l&apos;exclusion ({selection.size})
             </button>
-            <button type="button" disabled={enCours || selection.size === 0} onClick={() => reintegrer()} className="vx-btn !px-4 !py-2 !text-[14px] disabled:opacity-40">
+            <button type="button" disabled={enCours || selection.size === 0} onClick={() => reintegrer()} className="vx-btn vx-btn--sm disabled:opacity-40">
               Réintégrer ({selection.size})
             </button>
           </div>
@@ -101,7 +101,7 @@ export function CalageHorsPerimetre({ page }: { page: Page<LigneCalage> }) {
                     aria-label="Tout cocher"
                     checked={lignes.length > 0 && selection.size === lignes.length}
                     onChange={(e) => setSelection(e.target.checked ? new Set(lignes.map((l) => l.id)) : new Set())}
-                    className="accent-[var(--navy)]"
+                    className="accent-[var(--petrole)]"
                   />
                 </th>
                 <th>Désignation (verbatim)</th>
@@ -116,7 +116,7 @@ export function CalageHorsPerimetre({ page }: { page: Page<LigneCalage> }) {
                 <tr key={l.id}>
                   <td>
                     <input type="checkbox" aria-label="Sélectionner la ligne" checked={selection.has(l.id)}
-                      onChange={() => basculer(l.id)} className="accent-[var(--navy)]" />
+                      onChange={() => basculer(l.id)} className="accent-[var(--petrole)]" />
                   </td>
                   <td className="max-w-[460px]">
                     <span className="line-clamp-2 text-[13.5px] leading-snug" title={l.designationBrute}>{l.designationBrute}</span>

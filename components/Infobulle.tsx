@@ -46,7 +46,7 @@ export function Infobulle({
         }}
         onFocus={() => setOuverte(true)}
         onBlur={() => setOuverte(false)}
-        className="inline-flex cursor-help items-center rounded-[6px] outline-none focus-visible:ring-2 focus-visible:ring-navy"
+        className="inline-flex cursor-help items-center rounded-[6px] outline-none focus-visible:ring-2 focus-visible:ring-petrole"
       >
         {children}
       </button>
@@ -90,7 +90,7 @@ export function LigneInfo({
   return (
     <span className="flex items-baseline justify-between gap-3">
       <span className="text-sub">{libelle}</span>
-      <span className={`mono ${accent ? "font-semibold text-navy" : ""}`}>{valeur}</span>
+      <span className={accent ? "font-semibold text-petrole" : "font-medium"}>{valeur}</span>
     </span>
   );
 }

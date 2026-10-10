@@ -75,8 +75,8 @@ export function FormulaireDocument({
     });
   };
 
-  const champ = "vx-input mt-1 w-full !min-w-0 !py-[7px] !text-[13.5px]";
-  const etiquette = "text-[12.5px] font-semibold text-sub";
+  const champ = "vx-input mt-1 w-full !min-w-0 !py-[7px] !text-[13px]";
+  const etiquette = "text-[12px] font-medium text-faint";
 
   return (
     <form
@@ -84,7 +84,7 @@ export function FormulaireDocument({
       onKeyDown={(e) => {
         if (e.key === "Escape") fermer();
       }}
-      className="mt-3 grid grid-cols-2 gap-3 rounded-[10px] border border-navy-line bg-navy-tint p-4 md:grid-cols-4"
+      className="mt-3 grid grid-cols-2 gap-3 rounded-[8px] border border-line bg-surface p-4 md:grid-cols-4"
     >
       <label className={etiquette}>
         Date de la pièce
@@ -92,7 +92,7 @@ export function FormulaireDocument({
       </label>
       <label className={etiquette}>
         Type
-        <select name="type" defaultValue={doc.typeDocument} className="vx-select mt-1 w-full !py-[7px] !text-[13.5px]">
+        <select name="type" defaultValue={doc.typeDocument} className="vx-select mt-1 w-full !py-[7px] !text-[13px]">
           {TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </label>
@@ -101,7 +101,7 @@ export function FormulaireDocument({
         <input name="numero" defaultValue={doc.numero ?? ""} className={champ} />
       </label>
       <label className="flex items-end gap-2 pb-2 text-[13px]">
-        <input type="checkbox" name="ts" defaultChecked={doc.estTs} className="accent-[var(--navy)]" />
+        <input type="checkbox" name="ts" defaultChecked={doc.estTs} className="accent-[var(--petrole)]" />
         Travaux supplémentaires
       </label>
       <label className={`${etiquette} col-span-2`}>
@@ -122,7 +122,7 @@ export function FormulaireDocument({
       </label>
       <label className={etiquette}>
         Zone de prix
-        <select name="zone" defaultValue={doc.zone ?? ""} className="vx-select mt-1 w-full !py-[7px] !text-[13.5px]">
+        <select name="zone" defaultValue={doc.zone ?? ""} className="vx-select mt-1 w-full !py-[7px] !text-[13px]">
           <option value="">— déduite du code postal —</option>
           {(Object.keys(LIBELLES_ZONES) as CodeZone[]).map((z) => (
             <option key={z} value={z}>{LIBELLES_ZONES[z]}</option>
@@ -130,8 +130,8 @@ export function FormulaireDocument({
         </select>
       </label>
       <div className="flex items-end justify-end gap-2">
-        <button type="button" onClick={fermer} className="vx-btn-ghost">Annuler</button>
-        <button type="submit" disabled={enCours} className="vx-btn !px-4 !py-2 !text-[14px]">
+        <button type="button" onClick={fermer} className="vx-btn-outline">Annuler</button>
+        <button type="submit" disabled={enCours} className="vx-btn vx-btn--sm">
           {enCours ? "Enregistrement…" : "Enregistrer"}
         </button>
       </div>
@@ -145,7 +145,7 @@ export function BoutonModifierDocument({ doc }: { doc: DocumentEditable }) {
   const [ouvert, setOuvert] = useState(false);
   return (
     <span className="block">
-      <button type="button" onClick={() => setOuvert((o) => !o)} className="vx-btn-outline !py-1.5 !text-[12.5px]">
+      <button type="button" onClick={() => setOuvert((o) => !o)} className="vx-btn-ghost">
         {ouvert ? "Fermer" : "Modifier la pièce"}
       </button>
       {ouvert && <FormulaireDocument doc={doc} fermer={() => setOuvert(false)} />}

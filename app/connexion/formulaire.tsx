@@ -23,11 +23,11 @@ export function FormulaireConnexion({ suite }: { suite: string }) {
         type="password"
         autoFocus
         autoComplete="current-password"
-        className="vx-input mono w-full !text-[15px]"
+        className="vx-input w-full"
         placeholder="••••••••••"
       />
       {etat.erreur && (
-        <p className="mt-3 rounded-[9px] border border-red/25 bg-red-bg px-3 py-2 text-[13.5px] text-red">
+        <p className="mt-3 rounded-[8px] bg-red-bg px-3 py-2 text-[13px] text-red">
           {etat.erreur}
         </p>
       )}

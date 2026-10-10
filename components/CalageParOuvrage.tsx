@@ -160,22 +160,22 @@ export function CalageParOuvrage({
       <BandeauAction geste={geste} enCours={enCours} annuler={annuler} effacer={() => setGeste(null)} />
 
       {groupes.length === 0 ? (
-        <p className="vx-panel py-16 text-center text-[15px] text-sub">
+        <p className="vx-panel py-16 text-center text-[14px] text-sub">
           Aucune proposition en attente pour ces critères.
         </p>
       ) : (
-        <div className="flex flex-col gap-[22px]">
+        <div className="flex flex-col gap-5">
           {groupes.map((g) => {
             const nbCoches = g.lignes.filter((l) => l.rattachementId && selection.has(l.rattachementId)).length;
             const compatibles = g.lignes.filter((l) => l.uniteCompatible !== false);
             const nbIncompatiblesVisibles = g.lignes.length - compatibles.length;
             const tousCoches = compatibles.length > 0 && nbCoches === compatibles.length;
             return (
-              <article key={g.ouvrage.id} className="vx-panel !p-0">
+              <article key={g.ouvrage.id} className="vx-panel vx-panel--flush">
                 <header className="flex flex-wrap items-start gap-x-4 gap-y-2 border-b border-line px-6 py-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="mono text-[12.5px] text-sub">{g.ouvrage.lotCode ?? "—"}</span>
+                      <span className="mono text-[13px] text-sub">{g.ouvrage.lotCode ?? "—"}</span>
                       <h2 className="text-[16px] font-semibold leading-snug">{g.ouvrage.libelleDevis}</h2>
                       <span className="text-[12.5px] text-sub">
                         {g.ouvrage.unite ? LIBELLES_UNITES[g.ouvrage.unite] : "unité ?"}
@@ -187,7 +187,7 @@ export function CalageParOuvrage({
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="badge b-navy">{g.nbEnAttente} en attente</span>
+                    <span className="badge b-petrole">{g.nbEnAttente} en attente</span>
                     <span
                       className="text-[12.5px] text-sub"
                       title="Lignes chiffrées, cohérentes, d'unité compatible : celles qui entreront dans le prix une fois validées"
@@ -215,7 +215,7 @@ export function CalageParOuvrage({
                       type="button"
                       disabled={enCours}
                       onClick={() => toutValider(g)}
-                      className="vx-btn !px-4 !py-2 !text-[14px]"
+                      className="vx-btn vx-btn--sm"
                     >
                       {g.nbImpact < g.nbEnAttente
                         ? `Valider les ${g.nbImpact} compatibles`
@@ -234,7 +234,7 @@ export function CalageParOuvrage({
                             aria-label="Tout cocher"
                             checked={tousCoches}
                             onChange={(e) => toutCocher(g, e.target.checked)}
-                            className="accent-[var(--navy)]"
+                            className="accent-[var(--petrole)]"
                           />
                         </th>
                         <th>Désignation (verbatim)</th>
@@ -256,7 +256,7 @@ export function CalageParOuvrage({
                               disabled={l.uniteCompatible === false}
                               title={l.uniteCompatible === false ? "Unité incompatible : utilisez « Changer d'ouvrage »" : undefined}
                               onChange={() => l.rattachementId && basculer(l.rattachementId)}
-                              className="accent-[var(--navy)]"
+                              className="accent-[var(--petrole)]"
                             />
                           </td>
                           <td className="max-w-[440px]">
@@ -284,7 +284,7 @@ export function CalageParOuvrage({
                           <td className="vx-cell-amount">{nombre(l.quantite)}</td>
                           <td className="vx-cell-amount">{nombre(l.pu)}</td>
                           <td className="vx-cell-amount">
-                            <span className="mono text-[12.5px]">{l.score == null ? "—" : nombre(l.score, 2)}</span>
+                            <span>{l.score == null ? "—" : nombre(l.score, 2)}</span>
                             <span className="badge b-neutre ml-1.5">{libelleMethode(l)}</span>
                           </td>
                           <td className="whitespace-nowrap text-right">
@@ -303,7 +303,7 @@ export function CalageParOuvrage({
                   </table>
                 </div>
                 {g.lignesTronquees && (
-                  <p className="border-t border-hairline px-6 py-3 text-[12.5px] text-faint">
+                  <p className="vx-panel__foot">
                     Seules les {g.lignes.length} premières lignes sont affichées. « Tout valider » porte sur les {g.nbEnAttente}.
                   </p>
                 )}

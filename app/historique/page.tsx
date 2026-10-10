@@ -13,6 +13,7 @@ import {
   type ParamsRecherche,
 } from "@/lib/filtres-url";
 import { EnTete } from "@/components/EnTete";
+import { EtatBase } from "@/components/EtatBase";
 import { BarreRecherche } from "@/components/BarreRecherche";
 import { FiltresHistorique } from "@/components/FiltresHistorique";
 import { CarteDocument } from "@/components/CarteDocument";
@@ -64,10 +65,11 @@ export default async function PageHistorique({
     <div className="min-h-screen">
       <EnTete actif="historique" synthese={synthese} />
 
-      <main className="vx-wrap pb-16 pt-[30px]">
+      <main className="vx-wrap pb-16 pt-7">
         <TitrePage
           titre="Chaque chantier, ligne par ligne."
           chapo="Tous les devis, factures, situations et avenants, tels qu'imprimés. Ici, aucune moyenne : les lignes brutes, verbatim, pour retrouver ce qui a été chiffré, à qui et quand."
+          meta={<EtatBase synthese={synthese} />}
         />
 
         <RangeeKpi
@@ -106,6 +108,7 @@ export default async function PageHistorique({
         />
 
         <Panneau
+          aRas
           titre={
             mode === "documents"
               ? "Pièces, document par document"
@@ -121,7 +124,7 @@ export default async function PageHistorique({
           enfants={
             <>
               <Suspense>
-                <div className="flex flex-wrap items-center gap-2.5 border-b border-hairline pb-4">
+                <div className="flex flex-wrap items-center gap-2.5 border-b border-line px-6 py-3">
                   <BarreRecherche placeholder="Rechercher un client, un chantier, un ouvrage…" />
                   <FiltresHistorique
                     nbActifs={nbFiltresHistoriqueActifs(filtres)}
@@ -167,7 +170,7 @@ async function ModeDocuments({
 
   if (docs.total === 0) {
     return (
-      <p className="py-20 text-center text-[15px] text-sub">
+      <p className="px-6 py-20 text-center text-[14px] text-sub">
         Aucun document ne correspond à ces critères.
       </p>
     );
@@ -175,7 +178,7 @@ async function ModeDocuments({
 
   return (
     <>
-      <p className="vx-panel__meta pb-1 pt-3" aria-live="polite">
+      <p className="vx-panel__meta border-b border-hairline px-6 py-2.5" aria-live="polite">
         {entier(docs.total)} document{docs.total > 1 ? "s" : ""}
       </p>
       <div>
@@ -191,13 +194,15 @@ async function ModeDocuments({
           />
         ))}
       </div>
-      <Suspense>
-        <Pagination
-          page={docs.page}
-          total={docs.total}
-          parPage={docs.parPage}
-        />
-      </Suspense>
+      <div className="pb-4 empty:hidden">
+        <Suspense>
+          <Pagination
+            page={docs.page}
+            total={docs.total}
+            parPage={docs.parPage}
+          />
+        </Suspense>
+      </div>
     </>
   );
 }
@@ -215,7 +220,7 @@ async function ModeLignes({
 
   if (lignes.total === 0) {
     return (
-      <p className="py-20 text-center text-[15px] text-sub">
+      <p className="px-6 py-20 text-center text-[14px] text-sub">
         Aucune ligne ne correspond à ces critères.
       </p>
     );
@@ -223,17 +228,19 @@ async function ModeLignes({
 
   return (
     <>
-      <p className="vx-panel__meta pb-3 pt-3" aria-live="polite">
+      <p className="vx-panel__meta px-6 py-2.5" aria-live="polite">
         {entier(lignes.total)} ligne{lignes.total > 1 ? "s" : ""}
       </p>
       <TableLignesHistorique lignes={lignes.lignes} indexe={indexe} />
-      <Suspense>
-        <Pagination
-          page={lignes.page}
-          total={lignes.total}
-          parPage={lignes.parPage}
-        />
-      </Suspense>
+      <div className="pb-4 empty:hidden">
+        <Suspense>
+          <Pagination
+            page={lignes.page}
+            total={lignes.total}
+            parPage={lignes.parPage}
+          />
+        </Suspense>
+      </div>
     </>
   );
 }
