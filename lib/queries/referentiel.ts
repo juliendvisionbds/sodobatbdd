@@ -10,8 +10,7 @@
 // `rafraichir: false` quand l'appelant regroupe le recalcul en fin.
 // =====================================================================
 
-import type { TransactionSql } from "postgres";
-import { sql } from "../db";
+import { sql, transaction, type Tx } from "../db";
 import type {
   ChampsDocument,
   CodeUnite,
@@ -37,8 +36,6 @@ import type {
 } from "../types";
 import { versLigneContexte } from "./ouvrages";
 import { resoudreZone, trouverOuCreerClient } from "../extraction/insertion";
-
-type Tx = TransactionSql<Record<string, never>>;
 
 export interface OptionsEcriture {
   /** Défaut true. Les scripts passent false et rafraîchissent une fois en fin. */
@@ -300,7 +297,7 @@ export async function validerRattachement(
   ouvrageId?: UUID,
   o: OptionsEcriture = {},
 ): Promise<void> {
-  await sql.begin(async (tx) => {
+  await transaction(async (tx) => {
     await validerEnTransaction(tx as Tx, [id], ouvrageId ? "modifier" : "valider", {
       ...o,
       ouvrageId,
@@ -314,7 +311,7 @@ export async function validerRattachements(
   o: OptionsEcriture = {},
 ): Promise<UUID[]> {
   if (ids.length === 0) return [];
-  const r = await sql.begin(async (tx) =>
+  const r = await transaction(async (tx) =>
     validerEnTransaction(tx as Tx, ids, "valider", o),
   );
   await rafraichir(o);
@@ -350,7 +347,7 @@ export async function validerParOuvrage(
   const ids = retenues.map((r) => r.id as UUID);
   const ignoresUnite = lignes.length - retenues.length;
   if (ids.length === 0) return { ids: [], lotId: nouveauLot(), ignoresUnite };
-  const r = await sql.begin(async (tx) =>
+  const r = await transaction(async (tx) =>
     validerEnTransaction(tx as Tx, ids, o.action ?? "par_ouvrage", o),
   );
   await rafraichir(o);
@@ -362,7 +359,7 @@ export async function devaliderRattachements(
   o: OptionsEcriture = {},
 ): Promise<number> {
   if (ids.length === 0) return 0;
-  const n = await sql.begin(async (tx) => {
+  const n = await transaction(async (tx) => {
     const t = tx as Tx;
     const avant = (await snapshots(t, ids)).filter((s) => s.valide);
     if (avant.length === 0) return 0;
@@ -396,7 +393,7 @@ export async function devaliderRattachements(
 export async function annulerDerniereAction(
   o: OptionsEcriture = {},
 ): Promise<{ action: string; n: number } | null> {
-  const resultat = await sql.begin(async (tx) => {
+  const resultat = await transaction(async (tx) => {
     const t = tx as Tx;
     const [dernier] = await t`
       select lot_id, action from calage_journal
@@ -480,7 +477,7 @@ export async function rattacherLignes(
 ): Promise<UUID[]> {
   if (ligneIds.length === 0) return [];
   const acteur = o.acteur ?? "calage";
-  const ids = await sql.begin(async (tx) => {
+  const ids = await transaction(async (tx) => {
     const t = tx as Tx;
     const existants = await t`
       select ${CHAMPS_SNAPSHOT}, r.ligne_source_id
@@ -592,7 +589,7 @@ export async function fusionnerOuvrages(
   if (sourceId === cibleId) {
     throw new Error("Impossible de fusionner un ouvrage avec lui-même.");
   }
-  const n = await sql.begin(async (tx) => {
+  const n = await transaction(async (tx) => {
     const t = tx as Tx;
     const avant = await t`
       select ${CHAMPS_SNAPSHOT} from rattachements r where r.ouvrage_id = ${sourceId}`;
@@ -685,7 +682,7 @@ export async function autoValiderRattachements(
     return { candidats: candidats.length, valides: 0, lotId: null, parOuvrage: bilanOuvrages };
   }
   const ids = candidats.map((c) => c.id as UUID);
-  const r = await sql.begin(async (tx) =>
+  const r = await transaction(async (tx) =>
     validerEnTransaction(tx as Tx, ids, "auto", { ...o, acteur: o.acteur ?? "auto" }),
   );
   await rafraichir(o);
@@ -1568,7 +1565,7 @@ export async function enregistrerPropositionLots(
   lots: Array<{ code: string; libelle: string; parentCode: string | null; ordre: number; motif?: string }>,
   affectations: Array<{ ouvrageId: UUID; lotCode: string }>,
 ): Promise<void> {
-  await sql.begin(async (tx) => {
+  await transaction(async (tx) => {
     await tx`delete from ouvrages_lots_proposes where statut = 'propose'`;
     await tx`delete from lots_proposes where statut = 'propose'`;
     for (const l of lots) {
