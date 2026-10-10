@@ -19,7 +19,12 @@ function creer() {
   return postgres(url, {
     // prepare:false = compatible pooler Supabase en mode transaction
     prepare: false,
-    max: 5,
+    // Sur Vercel, chaque route est une instance avec son propre pool. À 5
+    // connexions jamais rendues, quelques pages suffisaient à atteindre la
+    // limite du pooler Supabase (15) : pages en erreur par intermittence.
+    max: 2,
+    idle_timeout: 20, // secondes : une connexion inactive est rendue
+    max_lifetime: 60 * 5,
     onnotice: () => {},
   });
 }
