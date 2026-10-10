@@ -82,7 +82,8 @@
 @layer components {
 .vx-app { min-height: 100%; background: var(--canvas); color: var(--ink); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 .vx-app *, .vx-app *::before, .vx-app *::after { box-sizing: border-box; }
-.vx-wrap { max-width: var(--content-width); margin: 0 auto; padding-inline: clamp(16px, 3vw, 40px); }
+/* Pleine largeur, mêmes marges latérales que l'en-tête (.vx-header). */
+.vx-wrap { width: 100%; padding-inline: var(--space-24); }
 .vx-num { font-variant-numeric: tabular-nums; }
 .vx-code { font-family: var(--font-mono); font-size: 13px; color: var(--gris-700); }
 
@@ -255,6 +256,7 @@
 @media (max-width: 900px) {
   /* les onglets passent sur leur propre ligne, alignés à gauche */
   .vx-header { padding: 10px 16px 0; row-gap: 4px; }
+  .vx-wrap { padding-inline: 16px; }
   .vx-header__side { margin-left: auto; }
   .vx-tabs { order: 3; flex-basis: 100%; min-height: 42px; }
   .vx-tabs > :first-child { margin-left: -12px; }
